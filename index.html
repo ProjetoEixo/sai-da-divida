@@ -876,13 +876,30 @@
     const btn = document.getElementById('auth-btn');
     if(!email||!senha){ msgEl.className='auth-msg err'; msgEl.textContent='Preencha e-mail e senha.'; return; }
     btn.disabled=true; msgEl.textContent='Aguarde...'; msgEl.className='auth-msg';
+
     if(modoAuth==='cadastro'){
-      const {error} = await sb.auth.signUp({email,password:senha});
-      if(error){ msgEl.className='auth-msg err'; msgEl.textContent=error.message==='User already registered'?'E-mail já cadastrado.':error.message; btn.disabled=false; return; }
+      const {data:signUpData, error:signUpError} = await sb.auth.signUp({email,password:senha});
+      if(signUpError){
+        msgEl.className='auth-msg err';
+        msgEl.textContent = signUpError.message.includes('already')?'E-mail já cadastrado. Use a aba Entrar.':signUpError.message;
+        btn.disabled=false; return;
+      }
+      // Se o Supabase já retornou sessão (confirm email desativado), entra direto
+      if(signUpData?.session?.user){
+        msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
+        entrarNoApp(signUpData.session.user);
+        return;
+      }
+      // Caso contrário tenta login imediato com a senha digitada
       msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
     }
+
     const {data,error} = await sb.auth.signInWithPassword({email,password:senha});
-    if(error){ msgEl.className='auth-msg err'; msgEl.textContent='E-mail ou senha incorretos.'; btn.disabled=false; return; }
+    if(error){
+      msgEl.className='auth-msg err';
+      msgEl.textContent='Erro ao entrar: '+error.message;
+      btn.disabled=false; return;
+    }
     entrarNoApp(data.user);
   };
 
