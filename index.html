@@ -155,6 +155,9 @@
   .tl-content .tl-when{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:0 0 3px;}
   .tl-content .tl-what{font-size:14px;font-weight:500;margin:0 0 2px;}
   .tl-content .tl-detail{font-size:12.5px;color:var(--muted);margin:0;}
+  .auth-link{background:none;border:none;color:var(--moss);font-family:'Inter',sans-serif;
+    font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;display:block;text-align:center;}
+  .auth-link:hover{color:var(--moss-deep);}
   footer{text-align:center;font-size:11.5px;color:var(--muted);padding:1.5rem 1.25rem 0;}
 </style>
 </head>
@@ -178,7 +181,41 @@
       <input type="password" id="auth-senha" placeholder="mínimo 6 caracteres">
     </div>
     <button class="auth-btn" id="auth-btn">Entrar</button>
+    <button class="auth-link" id="link-esqueci">Esqueci minha senha</button>
     <p class="auth-msg" id="auth-msg"></p>
+  </div>
+</div>
+
+<!-- TELA DE RECUPERAÇÃO DE SENHA -->
+<div id="recuperar-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
+  <div class="auth-box">
+    <p class="auth-logo">Sai da Dívida</p>
+    <p class="auth-sub">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
+    <div class="auth-field">
+      <label>E-mail</label>
+      <input type="email" id="rec-email" placeholder="seu@email.com">
+    </div>
+    <button class="auth-btn" id="rec-btn">Enviar link de recuperação</button>
+    <p class="auth-msg" id="rec-msg"></p>
+    <button class="auth-link" id="link-voltar-login">← Voltar ao login</button>
+  </div>
+</div>
+
+<!-- TELA DE REDEFINIÇÃO DE SENHA (após clicar no link do e-mail) -->
+<div id="redefinir-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
+  <div class="auth-box">
+    <p class="auth-logo">Sai da Dívida</p>
+    <p class="auth-sub">Digite sua nova senha.</p>
+    <div class="auth-field">
+      <label>Nova senha</label>
+      <input type="password" id="nova-senha" placeholder="mínimo 6 caracteres">
+    </div>
+    <div class="auth-field">
+      <label>Confirmar nova senha</label>
+      <input type="password" id="nova-senha-confirm" placeholder="repita a senha">
+    </div>
+    <button class="auth-btn" id="redefinir-btn">Salvar nova senha</button>
+    <p class="auth-msg" id="redefinir-msg"></p>
   </div>
 </div>
 
@@ -482,9 +519,12 @@
   async function salvarPagamento(p){
     const {data} = await sb.from('pagamentos_mes').insert({
       user_id:currentUser.id, divida_id:p.dividaId||null,
-      nome:p.nome, valor:p.valor, mes_ref:p.mesRef,
+      nome:p.nome, valor:p.valor, mes_ref:p.mesRef, tipo:p.tipo||'divida',
     }).select().single();
-    if(data) state.pagamentosMes.push({...data,dividaId:data.divida_id,mesRef:data.mes_ref,data:new Date(data.created_at).getTime()});
+    if(data) state.pagamentosMes.push({
+      ...data, dividaId:data.divida_id, mesRef:data.mes_ref,
+      tipo:data.tipo||'divida', data:new Date(data.created_at).getTime()
+    });
   }
 
   // ── RENDER PRINCIPAL ──────────────────────────────────────────────────────
@@ -763,7 +803,11 @@
 
   function renderPlano(rendaTotal, totalGastos, totalMinimos, sobra, ativas){
     const mesAtual = new Date().toISOString().slice(0,7);
-    const pagoMes = state.pagamentosMes.filter(p=>p.mesRef===mesAtual).reduce((a,p)=>a+Number(p.valor),0);
+    // Só conta pagamentos feitos pelo botão "Confirmar" do plano (tipo='plano')
+    // Pagamentos diretos de dívidas (tipo='divida') não entram aqui para não duplicar
+    const pagoMes = state.pagamentosMes
+      .filter(p=>p.mesRef===mesAtual && p.tipo==='plano')
+      .reduce((a,p)=>a+Number(p.valor),0);
     const sobraRestante = sobra - pagoMes;
     document.getElementById('plano-resumo').innerHTML = `
       <div class="cat-row"><span class="cat-name">Entradas do mês</span><span class="cat-val">${fmt(rendaTotal)}</span></div>
@@ -785,13 +829,14 @@
         <div class="priority-num">$</div>
         <div style="flex:1;min-width:0;">
           <p class="pname">${alvo.nome}${alvo.status==='negativado'?' — prioridade máxima':''}</p>
-          <p class="pmeta">Direcione ${fmt(valorSug)} da sobra para esta dívida.</p>
+          <p class="pmeta">Direcione ${fmt(valorSug)} da sobra para esta dívida agora.</p>
         </div>
       </div>
-      <button class="primary" id="btn-confirmar-plano" style="margin-top:10px;">Confirmar ${fmt(valorSug)}</button>`;
+      <button class="primary" id="btn-confirmar-plano" style="margin-top:10px;">✓ Confirmar que paguei ${fmt(valorSug)}</button>`;
     document.getElementById('btn-confirmar-plano').onclick = async ()=>{
       const isoHoje = new Date().toISOString().slice(0,10);
-      await salvarPagamento({dividaId:alvo.id,nome:alvo.nome,valor:valorSug,mesRef:isoHoje.slice(0,7)});
+      // Salva com tipo='plano' para não duplicar com pagamentos diretos de dívidas
+      await salvarPagamento({dividaId:alvo.id,nome:alvo.nome,valor:valorSug,mesRef:isoHoje.slice(0,7),tipo:'plano'});
       await salvarHistorico('divida-paga',`${alvo.nome}: direcionado ${fmt(valorSug)} em ${fmtData(isoHoje)}`);
       if(valorSug>=Number(alvo.valor)){ alvo.paga=true; alvo.dataPagamento=isoHoje; await atualizarDivida(alvo); }
       render();
@@ -909,21 +954,74 @@
   document.getElementById('btn-sair').onclick = async ()=>{
     await sb.auth.signOut();
     currentUser=null; state={entradas:[],dividas:[],gastos:[],historico:[],pagamentosMes:[]};
-    document.getElementById('app-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
+    mostrarTela('auth-screen');
   };
+
+  // ── NAVEGAÇÃO ENTRE TELAS ─────────────────────────────────────────────────
+  function mostrarTela(id){
+    ['auth-screen','recuperar-screen','redefinir-screen','app-screen'].forEach(s=>{
+      const el = document.getElementById(s);
+      el.style.display = s===id ? (s==='app-screen'?'block':'flex') : 'none';
+    });
+  }
 
   function entrarNoApp(user){
     currentUser=user;
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('app-screen').style.display='block';
+    mostrarTela('app-screen');
     document.getElementById('user-email').textContent=user.email;
     carregarDados();
   }
 
+  document.getElementById('link-esqueci').onclick = ()=>{
+    document.getElementById('rec-email').value = document.getElementById('auth-email').value;
+    document.getElementById('rec-msg').textContent = '';
+    mostrarTela('recuperar-screen');
+  };
+
+  document.getElementById('link-voltar-login').onclick = ()=> mostrarTela('auth-screen');
+
+  document.getElementById('rec-btn').onclick = async ()=>{
+    const email = document.getElementById('rec-email').value.trim();
+    const msgEl = document.getElementById('rec-msg');
+    const btn = document.getElementById('rec-btn');
+    if(!email){ msgEl.className='auth-msg err'; msgEl.textContent='Digite seu e-mail.'; return; }
+    btn.disabled=true; msgEl.textContent='Enviando...'; msgEl.className='auth-msg';
+    const redirectUrl = window.location.href.split('?')[0].split('#')[0];
+    const {error} = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+    if(error){ msgEl.className='auth-msg err'; msgEl.textContent='Erro: '+error.message; btn.disabled=false; return; }
+    msgEl.className='auth-msg ok';
+    msgEl.textContent='E-mail enviado! Verifique sua caixa de entrada e clique no link.';
+    btn.disabled=false;
+  };
+
+  document.getElementById('redefinir-btn').onclick = async ()=>{
+    const nova = document.getElementById('nova-senha').value;
+    const confirma = document.getElementById('nova-senha-confirm').value;
+    const msgEl = document.getElementById('redefinir-msg');
+    const btn = document.getElementById('redefinir-btn');
+    if(!nova||nova.length<6){ msgEl.className='auth-msg err'; msgEl.textContent='A senha precisa ter pelo menos 6 caracteres.'; return; }
+    if(nova!==confirma){ msgEl.className='auth-msg err'; msgEl.textContent='As senhas não coincidem.'; return; }
+    btn.disabled=true; msgEl.textContent='Salvando...'; msgEl.className='auth-msg';
+    const {error} = await sb.auth.updateUser({password:nova});
+    if(error){ msgEl.className='auth-msg err'; msgEl.textContent='Erro: '+error.message; btn.disabled=false; return; }
+    msgEl.className='auth-msg ok'; msgEl.textContent='Senha alterada com sucesso! Entrando...';
+    setTimeout(async ()=>{
+      const {data:{session}} = await sb.auth.getSession();
+      if(session?.user) entrarNoApp(session.user);
+    }, 1500);
+  };
+
+  // Detectar se o usuário voltou pelo link de recuperação (hash #access_token na URL)
+  sb.auth.onAuthStateChange(async (event, session)=>{
+    if(event==='PASSWORD_RECOVERY'){
+      mostrarTela('redefinir-screen');
+    }
+  });
+
   // ── INICIALIZAÇÃO ─────────────────────────────────────────────────────────
-  const {data:{session}} = await sb.auth.getSession();
-  if(session?.user) entrarNoApp(session.user);
+  const {data:{session:sessaoInicial}} = await sb.auth.getSession();
+  if(sessaoInicial?.user) entrarNoApp(sessaoInicial.user);
+  else mostrarTela('auth-screen');
 
 })();
 </script>
