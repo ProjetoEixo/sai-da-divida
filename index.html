@@ -739,6 +739,13 @@
     document.getElementById('lista-gastos').innerHTML = semData.length===0
       ? '<p class="empty">Nenhum gasto sem data.</p>' : semData.map(itemGastoHtml).join('');
 
+    // Monta as demais listas ANTES de anexar os listeners de clique,
+    // pois elas criam botões (.del, etc.) que também precisam de handler.
+    renderEntradas();
+    renderHistorico();
+    renderSimulacao(sobra, ativas);
+    renderPlano(rendaTotal, totalGastos, totalMinimos, sobra, ativas);
+
     // Handlers dinâmicos
     document.querySelectorAll('.del').forEach(btn=>{
       btn.onclick = ()=>{
@@ -822,11 +829,6 @@
         render();
       };
     });
-
-    renderEntradas();
-    renderHistorico();
-    renderSimulacao(sobra, ativas);
-    renderPlano(rendaTotal, totalGastos, totalMinimos, sobra, ativas);
   }
 
   function renderEntradas(){
