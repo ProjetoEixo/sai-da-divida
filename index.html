@@ -118,6 +118,7 @@
   .tag.fixo-imutavel{background:#E4E1D2;color:var(--muted);}
   .tag.fixo-consumo{background:#E3DCC4;color:var(--gold);}
   .tag.variavel{background:var(--rust-soft);color:var(--rust);}
+  .tag.parcelado{background:#DDE3F0;color:#3B5A8A;}
   .tag.paga{background:var(--ok-soft);color:var(--ok);}
   .del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
   .del:hover{color:var(--danger);}
@@ -324,25 +325,33 @@
 
     <section id="tab-gastos">
       <form class="entry" id="form-gasto">
-        <div class="field-row"><input id="g-nome" placeholder="Gasto (ex: Aluguel, Internet)" required></div>
+        <div class="field-row"><input id="g-nome" placeholder="Gasto (ex: Aluguel, Geladeira 12x)" required></div>
         <div class="field-row">
-          <input id="g-valor" type="number" placeholder="Valor (R$)" required>
+          <input id="g-valor" type="number" placeholder="Valor total (R$)" required>
           <select id="g-tipo">
             <option value="fixo-imutavel">Fixo imutável (aluguel, mensalidade)</option>
             <option value="fixo-consumo">Fixo de consumo (luz, água, gás)</option>
             <option value="variavel">Variável / cortável</option>
+            <option value="parcelado">Compra parcelada</option>
           </select>
         </div>
-        <div class="field-row">
+        <div class="field-row" id="g-parcelas-row" style="display:none;">
+          <input id="g-num-parcelas" type="number" min="2" max="96" placeholder="Nº de parcelas (ex: 12)">
+          <input id="g-data-inicio" type="date" placeholder="Data 1ª parcela">
+        </div>
+        <div class="field-row" id="g-vencimento-row">
           <input id="g-vencimento" type="date">
           <select id="g-gasto-recorrencia">
             <option value="mensal">Todo mês, neste dia</option>
             <option value="unica">Só desta vez</option>
           </select>
         </div>
+        <div id="g-parcela-preview" style="display:none;background:var(--ok-soft);border-radius:9px;padding:10px 12px;font-size:13px;color:var(--ok);margin-top:4px;"></div>
         <button class="primary" type="submit">Adicionar gasto</button>
       </form>
-      <p class="subhead" style="margin-top:0;">Próximos vencimentos</p>
+      <p class="subhead" style="margin-top:0;">Compras parceladas</p>
+      <div id="lista-gastos-parcelados"><p class="loading">Carregando...</p></div>
+      <p class="subhead">Próximos vencimentos</p>
       <div id="lista-gastos-futuros"><p class="loading">Carregando...</p></div>
       <p class="subhead">Sem data definida</p>
       <div id="lista-gastos"></div>
@@ -414,7 +423,23 @@
   function totalEntradas(){ return state.entradas.reduce((a,e)=>a+Number(e.valor),0); }
   function pendentes(){ return state.dividas.filter(d=>!d.paga).sort((a,b)=>a.ordem-b.ordem); }
   function pagas(){ return state.dividas.filter(d=>d.paga); }
-  function tipoLabel(t){ return t==='fixo-imutavel'?'fixo':t==='fixo-consumo'?'consumo':'variável'; }
+  function tipoLabel(t){ return t==='fixo-imutavel'?'fixo':t==='fixo-consumo'?'consumo':t==='parcelado'?'parcelado':'variável'; }
+
+  function calcParcelas(g){
+    if(g.tipo!=='parcelado'||!g.numParcelas||!g.dataInicio) return null;
+    const total = Number(g.valor);
+    const n = Number(g.numParcelas);
+    const valorParcela = Math.round((total/n)*100)/100;
+    const [y,m,d] = g.dataInicio.split('-').map(Number);
+    const inicio = new Date(y,m-1,d);
+    const fim = new Date(y,m-1+n-1,d);
+    const hoje = new Date();
+    // parcela atual = quantos meses passaram desde o início + 1
+    const mesesPassados = (hoje.getFullYear()-inicio.getFullYear())*12 + (hoje.getMonth()-inicio.getMonth());
+    const parcelaAtual = Math.min(Math.max(mesesPassados+1,1), n);
+    const parcelasRestantes = n - parcelaAtual + 1;
+    return { total, n, valorParcela, inicio, fim, parcelaAtual, parcelasRestantes };
+  }
 
   // ── SUPABASE: CARREGAR DADOS ───────────────────────────────────────────────
   async function carregarDados(){
@@ -440,6 +465,8 @@
       ...x,
       valorBase: x.valor_base,
       gastoRecorrencia: x.gasto_recorrencia||'mensal',
+      numParcelas: x.num_parcelas,
+      dataInicio: x.data_inicio,
     }));
     state.historico = (h.data||[]).map(x=>({...x, data: new Date(x.created_at).getTime()}));
     state.pagamentosMes = (p.data||[]).map(x=>({
@@ -498,8 +525,15 @@
       user_id:currentUser.id, nome:g.nome, valor:g.valor,
       valor_base:g.valorBase||null, tipo:g.tipo,
       vencimento:g.vencimento||null, gasto_recorrencia:g.gastoRecorrencia,
+      num_parcelas:g.numParcelas||null, data_inicio:g.dataInicio||null,
     }).select().single();
-    if(!error) state.gastos.push({...data, valorBase:data.valor_base, gastoRecorrencia:data.gasto_recorrencia||'mensal'});
+    if(!error) state.gastos.push({
+      ...data,
+      valorBase:data.valor_base,
+      gastoRecorrencia:data.gasto_recorrencia||'mensal',
+      numParcelas:data.num_parcelas,
+      dataInicio:data.data_inicio,
+    });
     render();
   }
   async function atualizarGasto(g){
@@ -606,6 +640,19 @@
 
     // Gastos
     function itemGastoHtml(g){
+      const pc = calcParcelas(g);
+      if(pc){
+        return `
+          <div class="item" style="flex-wrap:wrap;">
+            <div style="flex:1;min-width:0;">
+              <p class="iname">${g.nome}</p>
+              <p class="imeta">${fmt(pc.valorParcela)}/mês <span class="tag parcelado">parcela ${pc.parcelaAtual}/${pc.n}</span></p>
+              <p class="imeta" style="margin-top:2px;">total ${fmt(pc.total)} · término ${pc.fim.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</p>
+              <p class="imeta" style="margin-top:2px;color:var(--ok);">faltam ${pc.parcelasRestantes} parcela${pc.parcelasRestantes===1?'':'s'} · ${fmt(pc.parcelasRestantes*pc.valorParcela)}</p>
+            </div>
+            <button class="del" data-id="${g.id}" data-kind="gasto">✕</button>
+          </div>`;
+      }
       const venc = g.vencimento ? `<span class="tag em-dia">vence ${fmtData(g.vencimento)}${g.gastoRecorrencia==='mensal'?' /mês':''}</span>` : '';
       const estimativa = g.tipo==='fixo-consumo'&&g.valorBase ? `<p class="imeta" style="margin-top:2px;">estimativa: ${fmt(g.valorBase)}</p>` : '';
       const btnAjustar = g.tipo==='fixo-consumo' ? `<button class="check-btn ajustar-btn" data-id="${g.id}">ajustar</button>` : '';
@@ -620,8 +667,24 @@
           <button class="del" data-id="${g.id}" data-kind="gasto">✕</button>
         </div>`;
     }
-    const comData = state.gastos.filter(g=>g.vencimento).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
-    const semData = state.gastos.filter(g=>!g.vencimento);
+
+    function fimParcela(g){
+      // Calcula a data de término corretamente
+      const [y,m,d] = g.dataInicio.split('-').map(Number);
+      const n = Number(g.numParcelas);
+      const fim = new Date(y, m-1+n-1, d);
+      return fim.toISOString().slice(0,10);
+    }
+
+    const parcelados = state.gastos.filter(g=>g.tipo==='parcelado'&&g.numParcelas&&g.dataInicio);
+    const comData = state.gastos.filter(g=>g.tipo!=='parcelado'&&g.vencimento).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+    const semData = state.gastos.filter(g=>g.tipo!=='parcelado'&&!g.vencimento);
+
+    const listaParcelados = document.getElementById('lista-gastos-parcelados');
+    listaParcelados.innerHTML = parcelados.length===0
+      ? '<p class="empty">Nenhuma compra parcelada cadastrada.</p>'
+      : parcelados.sort((a,b)=>fimParcela(a).localeCompare(fimParcela(b))).map(itemGastoHtml).join('');
+
     document.getElementById('lista-gastos-futuros').innerHTML = comData.length===0
       ? '<p class="empty">Nenhum gasto com data ainda.</p>' : comData.map(itemGastoHtml).join('');
     document.getElementById('lista-gastos').innerHTML = semData.length===0
@@ -776,7 +839,36 @@
       compromissos.push({destaque:false, dataOrdenacao:dt, label:`${d.nome} — parcela ${d.parcelaAtual} de ${d.totalParcelas}`,
         valor:d.valorParcela, dataTexto:dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})});
     });
-    state.gastos.filter(g=>g.vencimento).forEach(g=>{
+    // Parcelados na linha do tempo
+    parcelados.forEach(g=>{
+      const pc = calcParcelas(g);
+      if(!pc) return;
+      const [y,m,d] = g.dataInicio.split('-').map(Number);
+      // Próximas 3 parcelas futuras
+      for(let i=pc.parcelaAtual-1;i<pc.n&&i<pc.parcelaAtual+2;i++){
+        const dt = new Date(y,m-1+i,d);
+        if(dt>=hoje){
+          compromissos.push({
+            destaque:false, dataOrdenacao:dt,
+            label:`${g.nome} — parcela ${i+1}/${pc.n}`,
+            valor:pc.valorParcela,
+            dataTexto:dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
+          });
+        }
+      }
+      // Data de término
+      const fim = new Date(y,m-1+pc.n-1,d);
+      if(fim>=hoje){
+        compromissos.push({
+          destaque:false, dataOrdenacao:new Date(fim.getTime()+1),
+          label:`${g.nome} — última parcela (${pc.n}/${pc.n}) 🎉`,
+          valor:pc.valorParcela,
+          dataTexto:'término: '+fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})
+        });
+      }
+    });
+
+    state.gastos.filter(g=>g.tipo!=='parcelado'&&g.vencimento).forEach(g=>{
       const [y,m,d] = g.vencimento.split('-').map(Number);
       let dt = new Date(y,m-1,d);
       if(g.gastoRecorrencia==='mensal') while(dt<hoje) dt=new Date(dt.getFullYear(),dt.getMonth()+1,dt.getDate());
@@ -853,6 +945,44 @@
     };
   });
 
+  function toggleCamposGasto(){
+    const tipo = document.getElementById('g-tipo').value;
+    const parcelasRow = document.getElementById('g-parcelas-row');
+    const vencRow = document.getElementById('g-vencimento-row');
+    const preview = document.getElementById('g-parcela-preview');
+    if(tipo==='parcelado'){
+      parcelasRow.style.display='flex';
+      vencRow.style.display='none';
+    } else {
+      parcelasRow.style.display='none';
+      vencRow.style.display='flex';
+      preview.style.display='none';
+    }
+  }
+  document.getElementById('g-tipo').addEventListener('change', toggleCamposGasto);
+  toggleCamposGasto();
+
+  function atualizarPreviewParcela(){
+    const valor = Number(document.getElementById('g-valor').value);
+    const n = Number(document.getElementById('g-num-parcelas').value);
+    const dataInicio = document.getElementById('g-data-inicio').value;
+    const preview = document.getElementById('g-parcela-preview');
+    if(valor&&n&&n>=2&&dataInicio){
+      const parcela = Math.round((valor/n)*100)/100;
+      const [y,m,d] = dataInicio.split('-').map(Number);
+      const fim = new Date(y,m-1+n-1,d);
+      preview.style.display='block';
+      preview.textContent = `${n}x de ${fmt(parcela)} · término em ${fim.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}`;
+    } else {
+      preview.style.display='none';
+    }
+  }
+  ['g-valor','g-num-parcelas','g-data-inicio'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      if(document.getElementById('g-tipo').value==='parcelado') atualizarPreviewParcela();
+    });
+  });
+
   function toggleDataNegativado(){
     document.getElementById('d-data-negativado-row').classList.toggle('show', document.getElementById('d-status').value==='negativado');
   }
@@ -900,12 +1030,17 @@
     const valor = Number(document.getElementById('g-valor').value);
     if(!nome||!valor){ btn.disabled=false; return; }
     const tipo = document.getElementById('g-tipo').value;
-    const vencimento = document.getElementById('g-vencimento').value||null;
-    const gastoRecorrencia = document.getElementById('g-gasto-recorrencia').value;
-    await salvarGasto({nome,valor,tipo,vencimento,gastoRecorrencia,valorBase:tipo==='fixo-consumo'?valor:null});
-    const tipoTxt = tipo==='fixo-imutavel'?'fixo':tipo==='fixo-consumo'?'consumo':'variável';
-    await salvarHistorico('gasto',`${nome}: ${fmt(valor)} (${tipoTxt})${vencimento?` · vence ${fmtData(vencimento)}`:''}`);
-    e.target.reset();
+    const vencimento = tipo!=='parcelado' ? (document.getElementById('g-vencimento').value||null) : null;
+    const gastoRecorrencia = tipo!=='parcelado' ? document.getElementById('g-gasto-recorrencia').value : 'unica';
+    const numParcelas = tipo==='parcelado' ? Number(document.getElementById('g-num-parcelas').value)||null : null;
+    const dataInicio = tipo==='parcelado' ? (document.getElementById('g-data-inicio').value||null) : null;
+    if(tipo==='parcelado'&&(!numParcelas||!dataInicio)){ btn.disabled=false; alert('Informe o número de parcelas e a data da 1ª parcela.'); return; }
+    await salvarGasto({nome,valor,tipo,vencimento,gastoRecorrencia,valorBase:tipo==='fixo-consumo'?valor:null,numParcelas,dataInicio});
+    const tipoTxt = tipoLabel(tipo);
+    const descExtra = tipo==='parcelado'&&numParcelas ? ` · ${numParcelas}x de ${fmt(Math.round((valor/numParcelas)*100)/100)}` : vencimento?` · vence ${fmtData(vencimento)}`:'';
+    await salvarHistorico('gasto',`${nome}: ${fmt(valor)} (${tipoTxt})${descExtra}`);
+    e.target.reset(); toggleCamposGasto();
+    document.getElementById('g-parcela-preview').style.display='none';
     btn.disabled=false;
   });
 
