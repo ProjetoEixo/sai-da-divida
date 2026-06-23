@@ -413,6 +413,12 @@
   // ── HELPERS ───────────────────────────────────────────────────────────────
   const fmt = n => 'R$ ' + (Math.round((n||0)*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
+  // Remove < e > de textos digitados pelo usuário (nome de dívida/gasto/entrada),
+  // para que nenhum texto livre possa virar tag HTML em nenhuma tela do app.
+  function sanitizarTexto(str){
+    return String(str||'').replace(/[<>]/g, '').trim();
+  }
+
   // Converte texto digitado pelo usuário (aceita vírgula ou ponto como decimal,
   // e ponto como separador de milhar no formato BR: "1.500,90") em número.
   function parseMoeda(str){
@@ -456,6 +462,10 @@
   function totalEntradas(){ return state.entradas.reduce((a,e)=>a+Number(e.valor),0); }
   function pendentes(){ return state.dividas.filter(d=>!d.paga).sort((a,b)=>a.ordem-b.ordem); }
   function pagas(){ return state.dividas.filter(d=>d.paga); }
+  // Obrigação mensal real da dívida: se está parcelada, é o valor da parcela;
+  // senão, é o mínimo informado no cadastro. Mantém "sobra" e os cards sempre
+  // coerentes mesmo se o campo "mínimo" antigo ficar desatualizado.
+  function minimoEfetivo(d){ return d.parcelado ? (Number(d.valorParcela)||0) : (Number(d.minimo)||0); }
   function tipoLabel(t){ return t==='fixo-imutavel'?'fixo':t==='fixo-consumo'?'consumo':t==='parcelado'?'parcelado':'variável'; }
 
   function calcParcelas(g){
@@ -513,16 +523,21 @@
   }
 
   // ── SUPABASE: SALVAR ───────────────────────────────────────────────────────
+  function avisarErro(acao, error){
+    alert(`Erro ao ${acao}: ${error?.message || 'tente novamente.'}`);
+  }
   async function salvarEntrada(en){
     const {data,error} = await sb.from('entradas').insert({
       user_id:currentUser.id, nome:en.nome, valor:en.valor,
       categoria:en.categoria, dia:en.dia||null, recorrencia:en.recorrencia,
     }).select().single();
-    if(!error) state.entradas.push({...data, recorrencia:data.recorrencia||'mensal'});
+    if(error){ avisarErro('salvar a entrada', error); return; }
+    state.entradas.push({...data, recorrencia:data.recorrencia||'mensal'});
     render();
   }
   async function deletarEntrada(id){
-    await sb.from('entradas').delete().eq('id',id);
+    const {error} = await sb.from('entradas').delete().eq('id',id);
+    if(error){ avisarErro('excluir a entrada', error); return; }
     state.entradas = state.entradas.filter(x=>x.id!==id);
     render();
   }
@@ -537,16 +552,15 @@
       valor_parcela: d.valorParcela||null,
       parcelas_atrasadas: d.parcelasAtrasadas||0,
     }).select().single();
-    if(!error){
-      state.dividas.push({...data, dataNegativado:data.data_negativado,
-        totalParcelas:data.total_parcelas, parcelaAtual:data.parcela_atual,
-        valorParcela:data.valor_parcela, dataPagamento:data.data_pagamento,
-        parcelasAtrasadas:data.parcelas_atrasadas||0});
-    }
+    if(error){ avisarErro('salvar a dívida', error); return; }
+    state.dividas.push({...data, dataNegativado:data.data_negativado,
+      totalParcelas:data.total_parcelas, parcelaAtual:data.parcela_atual,
+      valorParcela:data.valor_parcela, dataPagamento:data.data_pagamento,
+      parcelasAtrasadas:data.parcelas_atrasadas||0});
     render();
   }
   async function atualizarDivida(d){
-    await sb.from('dividas').update({
+    const {error} = await sb.from('dividas').update({
       paga:d.paga, ordem:d.ordem,
       data_pagamento:d.dataPagamento||null,
       parcelado:d.parcelado||false,
@@ -556,9 +570,11 @@
       valor:d.valor,
       parcelas_atrasadas: d.parcelasAtrasadas||0,
     }).eq('id',d.id);
+    if(error) avisarErro('atualizar a dívida', error);
   }
   async function deletarDivida(id){
-    await sb.from('dividas').delete().eq('id',id);
+    const {error} = await sb.from('dividas').delete().eq('id',id);
+    if(error){ avisarErro('excluir a dívida', error); return; }
     state.dividas = state.dividas.filter(x=>x.id!==id);
     render();
   }
@@ -569,7 +585,8 @@
       vencimento:g.vencimento||null, gasto_recorrencia:g.gastoRecorrencia,
       num_parcelas:g.numParcelas||null, data_inicio:g.dataInicio||null,
     }).select().single();
-    if(!error) state.gastos.push({
+    if(error){ avisarErro('salvar o gasto', error); return; }
+    state.gastos.push({
       ...data,
       valorBase:data.valor_base,
       gastoRecorrencia:data.gasto_recorrencia||'mensal',
@@ -579,25 +596,29 @@
     render();
   }
   async function atualizarGasto(g){
-    await sb.from('gastos').update({valor:g.valor}).eq('id',g.id);
+    const {error} = await sb.from('gastos').update({valor:g.valor}).eq('id',g.id);
+    if(error) avisarErro('atualizar o gasto', error);
   }
   async function deletarGasto(id){
-    await sb.from('gastos').delete().eq('id',id);
+    const {error} = await sb.from('gastos').delete().eq('id',id);
+    if(error){ avisarErro('excluir o gasto', error); return; }
     state.gastos = state.gastos.filter(x=>x.id!==id);
     render();
   }
   async function salvarHistorico(tipo, descricao){
-    const {data} = await sb.from('historico').insert({
+    const {data,error} = await sb.from('historico').insert({
       user_id:currentUser.id, tipo, descricao
     }).select().single();
-    if(data) state.historico.unshift({...data, data:new Date(data.created_at).getTime()});
+    if(error){ avisarErro('salvar o histórico', error); return; }
+    state.historico.unshift({...data, data:new Date(data.created_at).getTime()});
   }
   async function salvarPagamento(p){
-    const {data} = await sb.from('pagamentos_mes').insert({
+    const {data,error} = await sb.from('pagamentos_mes').insert({
       user_id:currentUser.id, divida_id:p.dividaId||null,
       nome:p.nome, valor:p.valor, mes_ref:p.mesRef, tipo:p.tipo||'divida',
     }).select().single();
-    if(data) state.pagamentosMes.push({
+    if(error){ avisarErro('salvar o pagamento', error); return; }
+    state.pagamentosMes.push({
       ...data, dividaId:data.divida_id, mesRef:data.mes_ref,
       tipo:data.tipo||'divida', data:new Date(data.created_at).getTime()
     });
@@ -609,7 +630,7 @@
     const quitadas = pagas();
     const rendaTotal = totalEntradas();
     const totalDividas = ativas.reduce((a,d)=>a+Number(d.valor),0);
-    const totalMinimos = ativas.reduce((a,d)=>a+Number(d.minimo),0);
+    const totalMinimos = ativas.reduce((a,d)=>a+minimoEfetivo(d),0);
     const totalGastos = state.gastos.reduce((a,g)=>a+Number(g.valor),0);
     const sobra = rendaTotal - totalGastos - totalMinimos;
 
@@ -631,7 +652,7 @@
           <div class="priority-num">${i+1}</div>
           <div>
             <p class="pname">${d.nome}${temAtraso?' ⚠':''}</p>
-            <p class="pmeta">${fmt(d.valor)} · mín. ${fmt(d.minimo)} · ${statusLabel(d.status)}${temAtraso?` · ${d.parcelasAtrasadas} parcela${d.parcelasAtrasadas===1?'':'s'} atrasada${d.parcelasAtrasadas===1?'':'s'}`:''}</p>
+            <p class="pmeta">${fmt(d.valor)} · mín. ${fmt(minimoEfetivo(d))} · ${statusLabel(d.status)}${temAtraso?` · ${d.parcelasAtrasadas} parcela${d.parcelasAtrasadas===1?'':'s'} atrasada${d.parcelasAtrasadas===1?'':'s'}`:''}</p>
           </div>
         </div>`;
       }).join('');
@@ -657,7 +678,7 @@
           </div>
           <div style="flex:1;min-width:0;">
             <p class="iname">${lista.indexOf(d)+1}. ${d.nome}</p>
-            <p class="imeta">${fmt(d.valor)} · mín. ${fmt(d.minimo)} <span class="tag ${d.status}">${statusLabel(d.status)}</span> ${tagAtraso}</p>
+            <p class="imeta">${fmt(d.valor)} · mín. ${fmt(minimoEfetivo(d))} <span class="tag ${d.status}">${statusLabel(d.status)}</span> ${tagAtraso}</p>
             ${desde}${parcInfo}${atrasoInfo}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
@@ -795,11 +816,14 @@
           await salvarHistorico('divida-paga',`${d.nome}: parcela ${d.parcelaAtual}/${d.totalParcelas} de ${fmt(vp)} paga em ${fmtData(isoHoje)}${eraAtrasada?' (atrasada)':''}`);
           d.parcelaAtual += 1;
           if(eraAtrasada) d.parcelasAtrasadas -= 1;
+          // Atualiza o saldo restante para refletir o pagamento desta parcela
+          d.valor = Math.max(0, Math.round((Number(d.valor)-vp)*100)/100);
           await atualizarDivida(d);
           render(); return;
         }
         d.paga=true; d.dataPagamento=isoHoje;
         const vp = d.parcelado ? d.valorParcela : d.valor;
+        if(d.parcelado) d.valor = Math.max(0, Math.round((Number(d.valor)-vp)*100)/100);
         await salvarPagamento({dividaId:d.id,nome:d.nome,valor:vp,mesRef:isoHoje.slice(0,7)});
         await salvarHistorico('divida-paga',`${d.nome}: quitada em ${fmtData(isoHoje)}`);
         await atualizarDivida(d);
@@ -1085,7 +1109,7 @@
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.disabled=true;
-    const nome = document.getElementById('e-nome').value.trim();
+    const nome = sanitizarTexto(document.getElementById('e-nome').value);
     const valor = parseMoeda(document.getElementById('e-valor').value);
     const categoria = document.getElementById('e-categoria').value;
     const diaRaw = document.getElementById('e-dia').value;
@@ -1102,7 +1126,7 @@
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.disabled=true;
-    const nome = document.getElementById('d-nome').value.trim();
+    const nome = sanitizarTexto(document.getElementById('d-nome').value);
     const valor = parseMoeda(document.getElementById('d-valor').value);
     const minimo = parseMoeda(document.getElementById('d-minimo').value);
     if(!nome||!valor||!minimo){ btn.disabled=false; return; }
@@ -1127,7 +1151,7 @@
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.disabled=true;
-    const nome = document.getElementById('g-nome').value.trim();
+    const nome = sanitizarTexto(document.getElementById('g-nome').value);
     const valor = parseMoeda(document.getElementById('g-valor').value);
     if(!nome||!valor){ btn.disabled=false; return; }
     const tipo = document.getElementById('g-tipo').value;
