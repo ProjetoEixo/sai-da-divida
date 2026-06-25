@@ -599,17 +599,58 @@
     sobraEl.textContent = fmt(sobra);
     document.getElementById('s-sobra-card').className = 'stat '+(sobra>=0?'ok':'danger');
 
-    // Ordem de ataque
+    // ── Nova ordem de ataque baseada na sobra disponível ──
+    // Regra: negativadas primeiro SE a sobra cobrir, depois avalanche (maior juros)
+    // Se sobra não cobre a negativada, pula para próxima que cabe
+    function ordenarAtaque(lista, sobraDisp){
+      const porJuros = [...lista].sort((a,b)=> juroPeso(b.juros)-juroPeso(a.juros));
+      const resultado = [];
+      const restantes = [...porJuros];
+      let saldoRestante = sobraDisp;
+
+      // 1ª passagem: negativadas que cabem na sobra
+      const negCabem = restantes.filter(d=>d.status==='negativado'&&Number(d.valor)<=saldoRestante);
+      negCabem.forEach(d=>{
+        resultado.push({...d, _cabe:true});
+        saldoRestante -= Number(d.valor);
+        restantes.splice(restantes.indexOf(d),1);
+      });
+
+      // 2ª passagem: demais que cabem, por maior juros
+      const demaisCabem = restantes.filter(d=>Number(d.valor)<=saldoRestante);
+      demaisCabem.forEach(d=>{
+        resultado.push({...d, _cabe:true});
+        saldoRestante -= Number(d.valor);
+        restantes.splice(restantes.indexOf(d),1);
+      });
+
+      // 3ª passagem: negativadas que não couberam
+      const negNaoCabem = restantes.filter(d=>d.status==='negativado');
+      negNaoCabem.forEach(d=>{
+        resultado.push({...d, _cabe:false});
+        restantes.splice(restantes.indexOf(d),1);
+      });
+
+      // 4ª passagem: resto por maior juros
+      restantes.forEach(d=> resultado.push({...d, _cabe:false}));
+
+      return resultado;
+    }
+
+    const ordemAtaque = ordenarAtaque(ativas, sobra);
     const pList = document.getElementById('priority-list');
-    pList.innerHTML = ativas.length===0
+    pList.innerHTML = ordemAtaque.length===0
       ? '<p class="empty">Cadastre suas dívidas para ver a ordem aqui.</p>'
-      : ativas.map((d,i)=>`
+      : ordemAtaque.map((d,i)=>`
         <div class="priority-row">
-          <div class="priority-num">${i+1}</div>
-          <div>
+          <div class="priority-num" style="${d._cabe?'background:var(--ok-soft);color:var(--ok)':'background:var(--danger-soft);color:var(--danger)'}">${i+1}</div>
+          <div style="flex:1;min-width:0;">
             <p class="pname">${d.nome}</p>
-            <p class="pmeta">${fmt(d.valor)} · mín. ${fmt(d.minimo)} · ${statusLabel(d.status)}</p>
+            <p class="pmeta">${fmt(d.valor)} · ${statusLabel(d.status)} · juros ${d.juros}</p>
           </div>
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${d._cabe?'var(--ok)':'var(--muted)'};">
+            ${d._cabe?'✓ cabe':'aguardar'}
+          </span>
         </div>`).join('');
 
     // Dívidas
@@ -1022,8 +1063,6 @@
 
   function renderPlano(rendaTotal, totalGastos, totalMinimos, sobra, ativas){
     const mesAtual = new Date().toISOString().slice(0,7);
-    // Só conta pagamentos feitos pelo botão "Confirmar" do plano (tipo='plano')
-    // Pagamentos diretos de dívidas (tipo='divida') não entram aqui para não duplicar
     const pagoMes = state.pagamentosMes
       .filter(p=>p.mesRef===mesAtual && p.tipo==='plano')
       .reduce((a,p)=>a+Number(p.valor),0);
@@ -1041,23 +1080,38 @@
     const sugestaoEl = document.getElementById('plano-sugestao');
     if(ativas.length===0){ sugestaoEl.innerHTML='<p class="empty">Cadastre dívidas para ver a sugestão.</p>'; return; }
     if(sobraRestante<=0){ sugestaoEl.innerHTML='<p class="empty">Sem sobra disponível este mês. Aguarde a próxima entrada.</p>'; return; }
-    const alvo = ativas.filter(d=>d.status==='negativado')[0]||ativas[0];
-    const valorSug = Math.min(sobraRestante, Number(alvo.valor));
-    sugestaoEl.innerHTML = `
-      <div class="priority-row" style="border-bottom:none;">
-        <div class="priority-num">$</div>
+    // Nova lógica: negativadas que cabem → demais por maior juros → parcial se nada cabe
+    const porJuros = [...ativas].sort((a,b)=>juroPeso(b.juros)-juroPeso(a.juros));
+    let saldo = sobraRestante;
+    const usadas = new Set();
+    const sugestoes = [];
+    porJuros.filter(d=>d.status==='negativado'&&Number(d.valor)<=saldo).forEach(d=>{
+      sugestoes.push({d,valor:Number(d.valor)}); saldo-=Number(d.valor); usadas.add(d.id);
+    });
+    porJuros.filter(d=>!usadas.has(d.id)&&Number(d.valor)<=saldo).forEach(d=>{
+      sugestoes.push({d,valor:Number(d.valor)}); saldo-=Number(d.valor); usadas.add(d.id);
+    });
+    if(sugestoes.length===0){
+      const alvo = porJuros.find(d=>d.status==='negativado')||porJuros[0];
+      sugestoes.push({d:alvo,valor:sobraRestante,parcial:true});
+    }
+    const totalConfirmar = sugestoes.reduce((a,s)=>a+s.valor,0);
+    sugestaoEl.innerHTML = sugestoes.map((s,i)=>`
+      <div class="priority-row" style="${i<sugestoes.length-1?'':'border-bottom:none;'}">
+        <div class="priority-num" style="background:var(--ok-soft);color:var(--ok);">${i+1}</div>
         <div style="flex:1;min-width:0;">
-          <p class="pname">${alvo.nome}${alvo.status==='negativado'?' — prioridade máxima':''}</p>
-          <p class="pmeta">Direcione ${fmt(valorSug)} da sobra para esta dívida agora.</p>
+          <p class="pname">${s.d.nome}${s.d.status==='negativado'?' 🔴':''}</p>
+          <p class="pmeta">${s.parcial?`Direcionar ${fmt(s.valor)} (sobra — não quita totalmente)`:`Quitar ${fmt(s.valor)} — dívida eliminada!`}</p>
         </div>
-      </div>
-      <button class="primary" id="btn-confirmar-plano" style="margin-top:10px;">✓ Confirmar que paguei ${fmt(valorSug)}</button>`;
+      </div>`).join('')
+    + `<button class="primary" id="btn-confirmar-plano" style="margin-top:12px;">✓ Confirmar pagamentos (${fmt(totalConfirmar)})</button>`;
     document.getElementById('btn-confirmar-plano').onclick = async ()=>{
       const isoHoje = new Date().toISOString().slice(0,10);
-      // Salva com tipo='plano' para não duplicar com pagamentos diretos de dívidas
-      await salvarPagamento({dividaId:alvo.id,nome:alvo.nome,valor:valorSug,mesRef:isoHoje.slice(0,7),tipo:'plano'});
-      await salvarHistorico('divida-paga',`${alvo.nome}: direcionado ${fmt(valorSug)} em ${fmtData(isoHoje)}`);
-      if(valorSug>=Number(alvo.valor)){ alvo.paga=true; alvo.dataPagamento=isoHoje; await atualizarDivida(alvo); }
+      for(const s of sugestoes){
+        await salvarPagamento({dividaId:s.d.id,nome:s.d.nome,valor:s.valor,mesRef:isoHoje.slice(0,7),tipo:'plano'});
+        await salvarHistorico('divida-paga',`${s.d.nome}: ${s.parcial?'direcionado':'quitado'} ${fmt(s.valor)} em ${fmtData(isoHoje)}`);
+        if(!s.parcial){ s.d.paga=true; s.d.dataPagamento=isoHoje; await atualizarDivida(s.d); }
+      }
       render();
     };
   }
