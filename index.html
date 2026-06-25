@@ -512,6 +512,11 @@
     state.entradas = state.entradas.filter(x=>x.id!==id);
     render();
   }
+  async function deletarHistorico(id){
+    await sb.from('historico').delete().eq('id',id);
+    state.historico = state.historico.filter(x=>x.id!==id);
+    renderHistorico();
+  }
   async function salvarDivida(d){
     const {data,error} = await sb.from('dividas').insert({
       user_id:currentUser.id, nome:d.nome, valor:d.valor, minimo:d.minimo,
@@ -757,7 +762,9 @@
       btn.onclick = ()=>{
         if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
         else if(btn.dataset.kind==='gasto') deletarGasto(btn.dataset.id);
-        else if(btn.dataset.kind==='entrada') deletarEntrada(btn.dataset.id);
+        else if(btn.dataset.kind==='entrada'){
+          if(confirm(`Remover a entrada "${state.entradas.find(e=>e.id===btn.dataset.id)?.nome}"?`)) deletarEntrada(btn.dataset.id);
+        }
       };
     });
 
@@ -983,11 +990,18 @@
           <div class="tl-dot ${dotClass(ev.tipo)}">${dotIcon(ev.tipo)}</div>
           ${i<Math.min(state.historico.length,30)-1?'<div class="tl-line" style="flex:1;"></div>':''}
         </div>
-        <div class="tl-content">
+        <div class="tl-content" style="flex:1;">
           <p class="tl-when">${new Date(ev.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</p>
-          <p class="tl-what">${ev.descricao}</p>
+          <p class="tl-what" style="padding-right:8px;">${ev.descricao}</p>
         </div>
+        <button class="del hist-del" data-id="${ev.id}" title="Remover este registro" style="flex-shrink:0;align-self:flex-start;margin-top:2px;">✕</button>
       </div>`).join('')+'</div>';
+
+    document.querySelectorAll('.hist-del').forEach(btn=>{
+      btn.onclick = ()=>{
+        if(confirm('Remover este registro do histórico?')) deletarHistorico(btn.dataset.id);
+      };
+    });
   }
 
   function renderSimulacao(sobraMensal, ativas){
