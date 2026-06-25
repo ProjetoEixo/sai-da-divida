@@ -122,6 +122,8 @@
   .tag.paga{background:var(--ok-soft);color:var(--ok);}
   .del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
   .del:hover{color:var(--danger);}
+  .del-entrada{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
+  .del-entrada:hover{color:var(--danger);}
 
   .item-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
   .reorder{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:14px;line-height:1;}
@@ -762,17 +764,6 @@
       btn.onclick = ()=>{
         if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
         else if(btn.dataset.kind==='gasto') deletarGasto(btn.dataset.id);
-        else if(btn.dataset.kind==='entrada'){
-          if(btn.dataset.confirming==='1'){
-            deletarEntrada(btn.dataset.id);
-          } else {
-            btn.dataset.confirming='1';
-            btn.textContent='Remover?';
-            btn.style.color='var(--danger)';
-            btn.style.fontSize='11px';
-            setTimeout(()=>{ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }, 3000);
-          }
-        }
       };
     });
 
@@ -968,8 +959,26 @@
             <p class="iname">${en.nome}</p>
             <p class="imeta">${fmt(en.valor)} <span class="tag em-dia">${catLabel(en.categoria)}</span>${diaLabel(en)}</p>
           </div>
-          <button class="del" data-id="${en.id}" data-kind="entrada">✕</button>
+          <button class="del-entrada" data-id="${en.id}">✕</button>
         </div>`).join('');
+
+    // Handler de duplo toque para entradas — não usa .del genérico
+    document.querySelectorAll('.del-entrada').forEach(btn=>{
+      btn.onclick = ()=>{
+        if(btn.dataset.confirming==='1'){
+          deletarEntrada(btn.dataset.id);
+        } else {
+          btn.dataset.confirming='1';
+          btn.textContent='Remover?';
+          btn.style.color='var(--danger)';
+          btn.style.fontFamily='Inter,sans-serif';
+          btn.style.fontSize='11px';
+          setTimeout(()=>{
+            if(btn.isConnected){ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }
+          }, 3000);
+        }
+      };
+    });
 
     const porCat = {};
     state.entradas.forEach(en=>{ porCat[en.categoria]=(porCat[en.categoria]||0)+Number(en.valor); });
