@@ -525,7 +525,7 @@
     render();
   }
   async function atualizarDivida(d){
-    await sb.from('dividas').update({
+    const {error} = await sb.from('dividas').update({
       paga:d.paga, ordem:d.ordem,
       data_pagamento:d.dataPagamento||null,
       parcelado:d.parcelado||false,
@@ -534,6 +534,7 @@
       valor_parcela:d.valorParcela||null,
       valor:d.valor,
     }).eq('id',d.id);
+    if(error) console.error('Erro ao atualizar dívida:', error.message);
   }
   async function deletarDivida(id){
     await sb.from('dividas').delete().eq('id',id);
