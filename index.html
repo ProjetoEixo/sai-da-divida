@@ -240,6 +240,7 @@
     <button data-tab="gastos">Gastos</button>
     <button data-tab="plano">Plano do mês</button>
     <button data-tab="linha">Linha do tempo</button>
+    <button data-tab="graficos">Gráficos</button>
   </nav>
 
   <main>
@@ -382,11 +383,30 @@
         <div id="sim-content"><p class="empty">Cadastre gastos com vencimento para ver aqui.</p></div>
       </div>
     </section>
+
+    <section id="tab-graficos">
+      <div class="card">
+        <h2>Entradas vs Gastos</h2>
+        <p class="sub">Comparativo mensal dos últimos 6 meses.</p>
+        <canvas id="chart-barras" style="width:100%;max-height:260px;"></canvas>
+      </div>
+      <div class="card">
+        <h2>Evolução das dívidas</h2>
+        <p class="sub">Total em aberto mês a mês desde o início.</p>
+        <canvas id="chart-dividas" style="width:100%;max-height:220px;"></canvas>
+      </div>
+      <div class="card">
+        <h2>Divisão dos gastos</h2>
+        <p class="sub">Proporção por tipo no mês atual.</p>
+        <canvas id="chart-pizza" style="width:100%;max-height:240px;"></canvas>
+      </div>
+    </section>
   </main>
   <footer>Dados salvos na nuvem — acesse de qualquer dispositivo.</footer>
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (async function(){
@@ -773,6 +793,112 @@
     renderHistorico();
     renderSimulacao(sobra, ativas);
     renderPlano(rendaTotal, totalGastos, totalMinimos, sobra, ativas);
+    renderGraficos(rendaTotal, totalGastos, sobra, ativas);
+  }
+
+  // Instâncias dos gráficos (para destruir antes de recriar)
+  let _charts = {};
+  function criarChart(id, config){
+    if(_charts[id]) _charts[id].destroy();
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
+    _charts[id] = new Chart(canvas, config);
+  }
+
+  function renderGraficos(rendaTotal, totalGastos, sobra, ativas){
+    const moss = '#3B5A45', rust = '#A8542F', gold = '#C99A3B', muted = '#6F6A5C';
+    const hoje = new Date();
+
+    // ── Gráfico 1: Barras entradas vs gastos últimos 6 meses ──
+    const meses = [];
+    const labMeses = [];
+    for(let i=5;i>=0;i--){
+      const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+      meses.push(d.toISOString().slice(0,7));
+      labMeses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
+    }
+    const mesAtual = hoje.toISOString().slice(0,7);
+    // Para meses passados usamos histórico; para o mês atual usamos state direto
+    const entMes = meses.map(m => m===mesAtual
+      ? rendaTotal
+      : state.historico.filter(h=>h.tipo==='entrada'&&h.created_at?.slice(0,7)===m)
+          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
+    );
+    const gastMes = meses.map(m => m===mesAtual
+      ? totalGastos
+      : state.historico.filter(h=>h.tipo==='gasto'&&h.created_at?.slice(0,7)===m)
+          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
+    );
+    const sobraMes = meses.map((m,i)=>Math.max(0, entMes[i]-gastMes[i]));
+
+    criarChart('chart-barras',{
+      type:'bar',
+      data:{
+        labels:labMeses,
+        datasets:[
+          {label:'Entradas',data:entMes,backgroundColor:moss+'CC',borderRadius:5},
+          {label:'Gastos',data:gastMes,backgroundColor:rust+'CC',borderRadius:5},
+          {label:'Sobra',data:sobraMes,backgroundColor:gold+'CC',borderRadius:5},
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:true,
+        plugins:{legend:{labels:{color:muted,font:{size:11}}}},
+        scales:{
+          x:{ticks:{color:muted,font:{size:10}},grid:{display:false}},
+          y:{ticks:{color:muted,font:{size:10},callback:v=>'R$'+Math.round(v/1000)+'k'},grid:{color:'#E8E4D8'}}
+        }
+      }
+    });
+
+    // ── Gráfico 2: Linha — total de dívidas ao longo do tempo ──
+    const totalInicial = state.dividas.reduce((a,d)=>a+Number(d.valor),0);
+    const totalPago = state.pagamentosMes.reduce((a,p)=>a+Number(p.valor),0);
+    // Reconstrói saldo por mês usando pagamentos
+    const pagPorMes = {};
+    state.pagamentosMes.forEach(p=>{ pagPorMes[p.mesRef]=(pagPorMes[p.mesRef]||0)+Number(p.valor); });
+    let saldo = totalInicial + totalPago; // saldo lá atrás
+    const dadosDividas = meses.map(m=>{ saldo-=(pagPorMes[m]||0); return Math.max(0,saldo); });
+
+    criarChart('chart-dividas',{
+      type:'line',
+      data:{
+        labels:labMeses,
+        datasets:[{
+          label:'Total em dívidas',data:dadosDividas,
+          borderColor:rust,backgroundColor:rust+'22',
+          tension:0.3,fill:true,pointRadius:4,pointBackgroundColor:rust
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:true,
+        plugins:{legend:{labels:{color:muted,font:{size:11}}}},
+        scales:{
+          x:{ticks:{color:muted,font:{size:10}},grid:{display:false}},
+          y:{ticks:{color:muted,font:{size:10},callback:v=>'R$'+Math.round(v/1000)+'k'},grid:{color:'#E8E4D8'}}
+        }
+      }
+    });
+
+    // ── Gráfico 3: Pizza — divisão dos gastos por tipo ──
+    const tiposMap = {'fixo-imutavel':'Fixo imutável','fixo-consumo':'Consumo','variavel':'Variável','parcelado':'Parcelado'};
+    const porTipo = {};
+    state.gastos.forEach(g=>{ const t=tiposMap[g.tipo]||g.tipo; porTipo[t]=(porTipo[t]||0)+Number(g.valor); });
+    const pizzaLabels = Object.keys(porTipo);
+    const pizzaData = pizzaLabels.map(k=>porTipo[k]);
+    const pizzaCores = [moss+'DD', rust+'DD', gold+'DD', '#5A7A9C'+'DD'];
+
+    criarChart('chart-pizza',{
+      type:'doughnut',
+      data:{labels:pizzaLabels,datasets:[{data:pizzaData,backgroundColor:pizzaCores,borderWidth:2,borderColor:'#F4F2EC'}]},
+      options:{
+        responsive:true, maintainAspectRatio:true,
+        plugins:{
+          legend:{position:'bottom',labels:{color:muted,font:{size:11},padding:12}},
+          tooltip:{callbacks:{label:ctx=>`${ctx.label}: R$ ${ctx.parsed.toLocaleString('pt-BR',{minimumFractionDigits:2})}`}}
+        }
+      }
+    });
   }
 
   function renderEntradas(){
