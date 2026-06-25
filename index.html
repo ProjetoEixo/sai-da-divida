@@ -763,7 +763,15 @@
         if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
         else if(btn.dataset.kind==='gasto') deletarGasto(btn.dataset.id);
         else if(btn.dataset.kind==='entrada'){
-          if(confirm(`Remover a entrada "${state.entradas.find(e=>e.id===btn.dataset.id)?.nome}"?`)) deletarEntrada(btn.dataset.id);
+          if(btn.dataset.confirming==='1'){
+            deletarEntrada(btn.dataset.id);
+          } else {
+            btn.dataset.confirming='1';
+            btn.textContent='Remover?';
+            btn.style.color='var(--danger)';
+            btn.style.fontSize='11px';
+            setTimeout(()=>{ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }, 3000);
+          }
         }
       };
     });
@@ -999,7 +1007,15 @@
 
     document.querySelectorAll('.hist-del').forEach(btn=>{
       btn.onclick = ()=>{
-        if(confirm('Remover este registro do histórico?')) deletarHistorico(btn.dataset.id);
+        if(btn.dataset.confirming==='1'){
+          deletarHistorico(btn.dataset.id);
+        } else {
+          btn.dataset.confirming='1';
+          btn.textContent='Remover?';
+          btn.style.color='var(--danger)';
+          btn.style.fontSize='11px';
+          setTimeout(()=>{ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }, 3000);
+        }
       };
     });
   }
