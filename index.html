@@ -120,6 +120,15 @@
   .tag.variavel{background:var(--rust-soft);color:var(--rust);}
   .tag.parcelado{background:#DDE3F0;color:#3B5A8A;}
   .tag.paga{background:var(--ok-soft);color:var(--ok);}
+  .tag.consignado{background:#E8E0F0;color:#5A3A8A;}
+  .consig-desconto{
+    font-size:11.5px;color:var(--muted);margin:3px 0 0;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .entrada-liquido{
+    font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--moss-deep);
+  }
+  .entrada-detalhe{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
   .del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
   .del:hover{color:var(--danger);}
   .del-entrada{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
@@ -274,7 +283,7 @@
   <main>
     <section id="tab-resumo" class="active">
       <div class="stat-grid">
-        <div class="stat"><p class="label">Renda mensal</p><p class="value" id="s-renda">R$ 0</p></div>
+        <div class="stat"><p class="label">Renda líquida</p><p class="value" id="s-renda">R$ 0</p><p class="entrada-detalhe" id="s-renda-detalhe"></p></div>
         <div class="stat"><p class="label">Total em dívidas</p><p class="value" id="s-dividas">R$ 0</p></div>
         <div class="stat"><p class="label">Gastos do mês</p><p class="value" id="s-gastos">R$ 0</p></div>
         <div class="stat" id="s-sobra-card"><p class="label">Sobra p/ dívidas</p><p class="value" id="s-sobra">R$ 0</p></div>
@@ -308,7 +317,26 @@
         </div>
         <button class="primary" type="submit">Adicionar entrada</button>
       </form>
+
       <div id="lista-entradas"><p class="loading">Carregando...</p></div>
+
+      <!-- Consignados -->
+      <p class="subhead" style="margin-top:1.5rem;">Descontos consignados</p>
+      <form class="entry" id="form-consignado">
+        <div class="field-row"><input id="cn-nome" placeholder="Descrição (ex: Consignado Banco X)" required></div>
+        <div class="field-row">
+          <input id="cn-valor" type="number" placeholder="Valor descontado/mês (R$)" required>
+          <input id="cn-parcelas" type="number" min="1" max="600" placeholder="Nº de parcelas restantes">
+        </div>
+        <div class="field-row">
+          <select id="cn-entrada-id">
+            <option value="">Selecione a entrada que sofre o desconto</option>
+          </select>
+        </div>
+        <button class="primary" type="submit">Adicionar consignado</button>
+      </form>
+      <div id="lista-consignados"></div>
+
       <div class="card" style="margin-top:1.25rem;">
         <h2>Calendário de recebimento</h2>
         <p class="sub" style="margin-bottom:0;">Suas entradas, ordenadas pelo dia em que caem no mês.</p>
@@ -521,7 +549,7 @@
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
   // ── ESTADO LOCAL ──────────────────────────────────────────────────────────
-  let state = { entradas:[], dividas:[], gastos:[], historico:[], pagamentosMes:[] };
+  let state = { entradas:[], dividas:[], gastos:[], historico:[], pagamentosMes:[], consignados:[] };
   let currentUser = null;
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
@@ -569,12 +597,13 @@
   // ── SUPABASE: CARREGAR DADOS ───────────────────────────────────────────────
   async function carregarDados(){
     const uid = currentUser.id;
-    const [e,d,g,h,p] = await Promise.all([
+    const [e,d,g,h,p,cn] = await Promise.all([
       sb.from('entradas').select('*').eq('user_id',uid).order('created_at'),
       sb.from('dividas').select('*').eq('user_id',uid).order('ordem'),
       sb.from('gastos').select('*').eq('user_id',uid).order('created_at'),
       sb.from('historico').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),
       sb.from('pagamentos_mes').select('*').eq('user_id',uid).order('created_at'),
+      sb.from('consignados').select('*').eq('user_id',uid).order('created_at'),
     ]);
     // Normaliza snake_case do Supabase → camelCase local
     state.entradas = (e.data||[]).map(x=>({...x, recorrencia:x.recorrencia||'mensal'}));
@@ -599,6 +628,11 @@
       dividaId: x.divida_id,
       mesRef: x.mes_ref,
       data: new Date(x.created_at).getTime(),
+    }));
+    state.consignados = (cn.data||[]).map(x=>({
+      ...x,
+      entradaId: x.entrada_id,
+      numParcelas: x.num_parcelas,
     }));
     render();
   }
@@ -651,7 +685,21 @@
     state.dividas = state.dividas.filter(x=>x.id!==id);
     render();
   }
-  async function salvarGasto(g){
+  async function salvarConsignado(cn){
+    const {data,error} = await sb.from('consignados').insert({
+      user_id:currentUser.id, nome:cn.nome, valor:cn.valor,
+      entrada_id:cn.entradaId||null, num_parcelas:cn.numParcelas||null,
+    }).select().single();
+    if(!error) state.consignados.push({...data, entradaId:data.entrada_id, numParcelas:data.num_parcelas});
+    render();
+  }
+  async function deletarConsignado(id){
+    await sb.from('consignados').delete().eq('id',id);
+    state.consignados = state.consignados.filter(x=>x.id!==id);
+    render();
+  }
+  function totalConsignados(){ return state.consignados.reduce((a,c)=>a+Number(c.valor),0); }
+  function totalEntradasLiquido(){ return totalEntradas() - totalConsignados(); }
     const {data,error} = await sb.from('gastos').insert({
       user_id:currentUser.id, nome:g.nome, valor:g.valor,
       valor_base:g.valorBase||null, tipo:g.tipo,
@@ -696,13 +744,21 @@
   function render(){
     const ativas = pendentes();
     const quitadas = pagas();
-    const rendaTotal = totalEntradas();
+    const rendaTotal = totalEntradasLiquido();
+    const rendaBruta = totalEntradas();
+    const totalConsig = totalConsignados();
     const totalDividas = ativas.reduce((a,d)=>a+Number(d.valor),0);
     const totalMinimos = ativas.reduce((a,d)=>a+Number(d.minimo),0);
     const totalGastos = state.gastos.reduce((a,g)=>a+Number(g.valor),0);
     const sobra = rendaTotal - totalGastos - totalMinimos;
 
     document.getElementById('s-renda').textContent = fmt(rendaTotal);
+    const detalheEl = document.getElementById('s-renda-detalhe');
+    if(totalConsig>0){
+      detalheEl.textContent = fmt(rendaBruta)+' − '+fmt(totalConsig)+' consig.';
+    } else {
+      detalheEl.textContent = '';
+    }
     document.getElementById('s-dividas').textContent = fmt(totalDividas);
     document.getElementById('s-gastos').textContent = fmt(totalGastos);
     const sobraEl = document.getElementById('s-sobra');
@@ -1097,6 +1153,46 @@
     document.getElementById('calendario-entradas').innerHTML = fixas.length===0
       ? '<p class="empty">Informe o dia do mês de cada entrada para ver o calendário.</p>'
       : fixas.map(en=>`<div class="cat-row"><span class="cat-name">Dia ${en.dia} · ${en.nome}</span><span class="cat-val">${fmt(en.valor)}</span></div>`).join('');
+
+    // Atualiza select de entradas no form de consignado
+    const sel = document.getElementById('cn-entrada-id');
+    const selVal = sel.value;
+    sel.innerHTML = '<option value="">Selecione a entrada que sofre o desconto</option>'
+      + state.entradas.map(en=>`<option value="${en.id}">${en.nome} (${fmt(en.valor)})</option>`).join('');
+    if(selVal) sel.value = selVal;
+
+    // Lista de consignados
+    const listaCn = document.getElementById('lista-consignados');
+    if(state.consignados.length===0){
+      listaCn.innerHTML = '<p class="empty">Nenhum desconto consignado cadastrado.</p>';
+    } else {
+      listaCn.innerHTML = state.consignados.map(cn=>{
+        const entrada = state.entradas.find(e=>e.id===cn.entradaId);
+        return `
+          <div class="item" style="flex-wrap:wrap;">
+            <div style="flex:1;min-width:0;">
+              <p class="iname">${cn.nome}</p>
+              <p class="imeta">${fmt(cn.valor)}/mês <span class="tag consignado">consignado</span></p>
+              ${entrada?`<p class="consig-desconto">desconto em: ${entrada.nome}</p>`:''}
+              ${cn.numParcelas?`<p class="consig-desconto">${cn.numParcelas} parcelas restantes · total ${fmt(cn.valor*cn.numParcelas)}</p>`:''}
+            </div>
+            <button class="del-consig" data-id="${cn.id}">✕</button>
+          </div>`;
+      }).join('');
+      document.querySelectorAll('.del-consig').forEach(btn=>{
+        btn.onclick = ()=>{
+          if(btn.dataset.confirming==='1'){
+            deletarConsignado(btn.dataset.id);
+          } else {
+            btn.dataset.confirming='1';
+            btn.textContent='Remover?';
+            btn.style.color='var(--danger)';
+            btn.style.fontSize='11px';
+            setTimeout(()=>{ if(btn.isConnected){ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }},3000);
+          }
+        };
+      });
+    }
   }
 
   function renderHistorico(){
@@ -1325,6 +1421,21 @@
     if(!nome||!valor){ btn.disabled=false; return; }
     await salvarEntrada({nome,valor,categoria,dia,recorrencia});
     await salvarHistorico('entrada',`${nome}: ${fmt(valor)} (${catLabel(categoria)})${dia?` · dia ${dia}`:''}`);
+    e.target.reset();
+    btn.disabled=false;
+  });
+
+  document.getElementById('form-consignado').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled=true;
+    const nome = document.getElementById('cn-nome').value.trim();
+    const valor = Number(document.getElementById('cn-valor').value);
+    const entradaId = document.getElementById('cn-entrada-id').value||null;
+    const numParcelas = Number(document.getElementById('cn-parcelas').value)||null;
+    if(!nome||!valor){ btn.disabled=false; return; }
+    await salvarConsignado({nome,valor,entradaId,numParcelas});
+    await salvarHistorico('gasto',`${nome}: consignado de ${fmt(valor)}/mês`);
     e.target.reset();
     btn.disabled=false;
   });
