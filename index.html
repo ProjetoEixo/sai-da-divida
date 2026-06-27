@@ -107,12 +107,6 @@
   button.primary:disabled{opacity:.5;cursor:not-allowed;}
   button.primary:active:not(:disabled){transform:scale(.98);}
 
-  /* Campos de valor com vírgula */
-  .valor-input{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;
-    border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);}
-  .valor-input:focus{outline:none;border-color:var(--moss);box-shadow:0 0 0 3px rgba(59,90,69,0.15);}
-  .valor-input.invalid{border-color:var(--danger);box-shadow:0 0 0 3px rgba(156,59,48,0.12);}
-
   .item{display:flex;align-items:center;gap:10px;background:var(--paper-raised);border:1px solid var(--line);
     border-radius:11px;padding:11px 14px;margin-bottom:8px;}
   .item .iname{font-size:14px;font-weight:500;margin:0;}
@@ -164,6 +158,31 @@
   .tl-content .tl-when{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:0 0 3px;}
   .tl-content .tl-what{font-size:14px;font-weight:500;margin:0 0 2px;}
   .tl-content .tl-detail{font-size:12.5px;color:var(--muted);margin:0;}
+  .calc-modo-btn{
+    border:1px solid var(--line);background:var(--paper-raised);
+    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+    color:var(--muted);padding:10px 8px;border-radius:10px;cursor:pointer;
+    text-align:center;line-height:1.3;
+  }
+  .calc-modo-btn.active{background:var(--moss-deep);color:#EFEAD9;border-color:var(--moss-deep);}
+  .calc-resultado{
+    background:var(--paper);border-radius:10px;padding:14px;
+  }
+  .calc-resultado .cr-linha{
+    display:flex;justify-content:space-between;padding:6px 0;
+    border-bottom:1px solid var(--line);font-size:13.5px;
+  }
+  .calc-resultado .cr-linha:last-child{border-bottom:none;}
+  .calc-resultado .cr-destaque{font-weight:600;color:var(--danger);}
+  .calc-resultado .cr-ok{font-weight:600;color:var(--ok);}
+  .calc-enviar{
+    display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;
+  }
+  .calc-enviar button{
+    flex:1;padding:9px;border:1px solid var(--line);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;
+    cursor:pointer;background:var(--paper-raised);color:var(--moss-deep);
+  }
   .auth-link{background:none;border:none;color:var(--moss);font-family:'Inter',sans-serif;
     font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;display:block;text-align:center;}
   .auth-link:hover{color:var(--moss-deep);}
@@ -210,7 +229,7 @@
   </div>
 </div>
 
-<!-- TELA DE REDEFINIÇÃO DE SENHA -->
+<!-- TELA DE REDEFINIÇÃO DE SENHA (após clicar no link do e-mail) -->
 <div id="redefinir-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
   <div class="auth-box">
     <p class="auth-logo">Sai da Dívida</p>
@@ -249,6 +268,7 @@
     <button data-tab="plano">Plano do mês</button>
     <button data-tab="linha">Linha do tempo</button>
     <button data-tab="graficos">Gráficos</button>
+    <button data-tab="calc">Calculadora</button>
   </nav>
 
   <main>
@@ -270,7 +290,7 @@
       <form class="entry" id="form-entrada">
         <div class="field-row"><input id="e-nome" placeholder="Descrição (ex: Salário, Adiantamento)" required></div>
         <div class="field-row">
-          <input id="e-valor" class="valor-input" inputmode="decimal" placeholder="Valor (ex: 1.500,00)" autocomplete="off">
+          <input id="e-valor" type="number" placeholder="Valor (R$)" required>
           <select id="e-categoria">
             <option value="salario">Salário fixo</option>
             <option value="freelance">Freelance/autônomo</option>
@@ -305,8 +325,8 @@
       <form class="entry" id="form-divida">
         <div class="field-row"><input id="d-nome" placeholder="Nome (ex: Cartão Nubank)" required></div>
         <div class="field-row">
-          <input id="d-valor" class="valor-input" inputmode="decimal" placeholder="Valor total (ex: 3.200,00)" autocomplete="off">
-          <input id="d-minimo" class="valor-input" inputmode="decimal" placeholder="Mínimo mensal (ex: 150,00)" autocomplete="off">
+          <input id="d-valor" type="number" placeholder="Valor total (R$)" required>
+          <input id="d-minimo" type="number" placeholder="Mínimo mensal (R$)" required>
         </div>
         <div class="field-row">
           <select id="d-status">
@@ -336,7 +356,7 @@
       <form class="entry" id="form-gasto">
         <div class="field-row"><input id="g-nome" placeholder="Gasto (ex: Aluguel, Geladeira 12x)" required></div>
         <div class="field-row">
-          <input id="g-valor" class="valor-input" inputmode="decimal" placeholder="Valor total (ex: 850,00)" autocomplete="off">
+          <input id="g-valor" type="number" placeholder="Valor total (R$)" required>
           <select id="g-tipo">
             <option value="fixo-imutavel">Fixo imutável (aluguel, mensalidade)</option>
             <option value="fixo-consumo">Fixo de consumo (luz, água, gás)</option>
@@ -345,7 +365,7 @@
           </select>
         </div>
         <div class="field-row" id="g-parcelas-row" style="display:none;">
-          <input id="g-num-parcelas" type="number" min="2" max="96" placeholder="Nº de parcelas (ex: 12)">
+          <input id="g-num-parcelas" type="number" min="2" max="600" placeholder="Nº de parcelas (ex: 340)">
           <input id="g-data-inicio" type="date" placeholder="Data 1ª parcela">
         </div>
         <div class="field-row" id="g-vencimento-row">
@@ -409,6 +429,83 @@
         <canvas id="chart-pizza" style="width:100%;max-height:240px;"></canvas>
       </div>
     </section>
+
+    <section id="tab-calc">
+      <!-- Seletor de modo -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;">
+        <button class="calc-modo-btn active" data-modo="compostos">📈 Crescimento da dívida</button>
+        <button class="calc-modo-btn" data-modo="parcelamento">💳 Custo do parcelamento</button>
+        <button class="calc-modo-btn" data-modo="antecipacao">⚡ Economia antecipando</button>
+        <button class="calc-modo-btn" data-modo="comparador">⚖️ Comparador de dívidas</button>
+      </div>
+
+      <!-- MODO 1: Juros compostos -->
+      <div id="calc-compostos" class="card calc-painel">
+        <h2>Crescimento da dívida</h2>
+        <p class="sub">Quanto a dívida vai virar se você não pagar.</p>
+        <div class="field-row"><input id="cc-valor" type="number" placeholder="Valor atual da dívida (R$)"></div>
+        <div class="field-row">
+          <input id="cc-taxa" type="number" placeholder="Taxa de juros (% ao mês)" step="0.1">
+          <input id="cc-meses" type="number" placeholder="Em quantos meses?">
+        </div>
+        <button class="primary" id="cc-calcular">Calcular</button>
+        <div id="cc-resultado" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- MODO 2: Custo do parcelamento -->
+      <div id="calc-parcelamento" class="card calc-painel" style="display:none;">
+        <h2>Custo do parcelamento</h2>
+        <p class="sub">Quanto você realmente vai pagar no total.</p>
+        <div class="field-row"><input id="cp-valor" type="number" placeholder="Valor à vista (R$)"></div>
+        <div class="field-row">
+          <input id="cp-parcelas" type="number" placeholder="Nº de parcelas">
+          <input id="cp-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+        </div>
+        <div class="field-row"><input id="cp-parcela-val" type="number" placeholder="Ou informe o valor da parcela (R$)" step="0.01"></div>
+        <button class="primary" id="cp-calcular">Calcular</button>
+        <div id="cp-resultado" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- MODO 3: Economia antecipando -->
+      <div id="calc-antecipacao" class="card calc-painel" style="display:none;">
+        <h2>Economia antecipando o pagamento</h2>
+        <p class="sub">Quanto você economiza quitando antes do prazo.</p>
+        <div class="field-row"><input id="ca-valor" type="number" placeholder="Valor total da dívida (R$)"></div>
+        <div class="field-row">
+          <input id="ca-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="ca-prazo" type="number" placeholder="Prazo total (meses)">
+        </div>
+        <div class="field-row"><input id="ca-antecipa" type="number" placeholder="Quero quitar em quantos meses?"></div>
+        <button class="primary" id="ca-calcular">Calcular</button>
+        <div id="ca-resultado" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- MODO 4: Comparador -->
+      <div id="calc-comparador" class="card calc-painel" style="display:none;">
+        <h2>Comparador de dívidas</h2>
+        <p class="sub">Qual dívida custa mais caro no total.</p>
+        <p class="subhead" style="margin-top:4px;">Dívida A</p>
+        <div class="field-row">
+          <input id="cmp-a-nome" placeholder="Nome (ex: Cartão)">
+          <input id="cmp-a-valor" type="number" placeholder="Valor (R$)">
+        </div>
+        <div class="field-row">
+          <input id="cmp-a-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="cmp-a-meses" type="number" placeholder="Prazo (meses)">
+        </div>
+        <p class="subhead">Dívida B</p>
+        <div class="field-row">
+          <input id="cmp-b-nome" placeholder="Nome (ex: Empréstimo)">
+          <input id="cmp-b-valor" type="number" placeholder="Valor (R$)">
+        </div>
+        <div class="field-row">
+          <input id="cmp-b-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="cmp-b-meses" type="number" placeholder="Prazo (meses)">
+        </div>
+        <button class="primary" id="cmp-calcular">Comparar</button>
+        <div id="cmp-resultado" style="margin-top:12px;"></div>
+      </div>
+    </section>
   </main>
   <footer>Dados salvos na nuvem — acesse de qualquer dispositivo.</footer>
 </div>
@@ -426,54 +523,6 @@
   // ── ESTADO LOCAL ──────────────────────────────────────────────────────────
   let state = { entradas:[], dividas:[], gastos:[], historico:[], pagamentosMes:[] };
   let currentUser = null;
-
-  // ── PARSE DE VALOR: aceita vírgula OU ponto como separador decimal ─────────
-  function parseVal(str) {
-    if(str === null || str === undefined) return NaN;
-    // Remove espaços e símbolo R$
-    let s = String(str).trim().replace(/R\$\s*/,'');
-    // Se tem vírgula como separador decimal (formato BR): 1.500,50 → 1500.50
-    // ou simplesmente 150,50 → 150.50
-    if(s.includes(',')) {
-      // Remove pontos de milhar, troca vírgula por ponto
-      s = s.replace(/\./g,'').replace(',','.');
-    }
-    // Caso só ponto: 1500.50 → aceita direto (mas remove pontos extras de milhar se houver)
-    // Ex: "1.500.00" seria ambíguo — tratamos como milhar+decimal apenas se último grupo tiver 2 dígitos
-    else if((s.match(/\./g)||[]).length > 1) {
-      // múltiplos pontos → remove todos exceto o último
-      const parts = s.split('.');
-      s = parts.slice(0,-1).join('') + '.' + parts[parts.length-1];
-    }
-    const n = parseFloat(s);
-    return isNaN(n) ? NaN : Math.round(n * 100) / 100;
-  }
-
-  // Aplica máscara visual enquanto digita nos campos de valor
-  function setupValorInput(el) {
-    el.addEventListener('input', function() {
-      // Permite: dígitos, vírgula, ponto
-      let v = this.value.replace(/[^\d.,]/g,'');
-      this.value = v;
-      const parsed = parseVal(v);
-      if(v && isNaN(parsed)) {
-        this.classList.add('invalid');
-      } else {
-        this.classList.remove('invalid');
-      }
-    });
-    el.addEventListener('blur', function() {
-      const parsed = parseVal(this.value);
-      if(!isNaN(parsed) && this.value.trim()) {
-        // Formata ao sair do campo: exibe com vírgula BR
-        this.value = parsed.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-        this.classList.remove('invalid');
-      }
-    });
-  }
-
-  // Inicializa todos os campos de valor
-  document.querySelectorAll('.valor-input').forEach(setupValorInput);
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   const fmt = n => 'R$ ' + (Math.round((n||0)*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -510,6 +559,7 @@
     const inicio = new Date(y,m-1,d);
     const fim = new Date(y,m-1+n-1,d);
     const hoje = new Date();
+    // parcela atual = quantos meses passaram desde o início + 1
     const mesesPassados = (hoje.getFullYear()-inicio.getFullYear())*12 + (hoje.getMonth()-inicio.getMonth());
     const parcelaAtual = Math.min(Math.max(mesesPassados+1,1), n);
     const parcelasRestantes = n - parcelaAtual + 1;
@@ -526,6 +576,7 @@
       sb.from('historico').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),
       sb.from('pagamentos_mes').select('*').eq('user_id',uid).order('created_at'),
     ]);
+    // Normaliza snake_case do Supabase → camelCase local
     state.entradas = (e.data||[]).map(x=>({...x, recorrencia:x.recorrencia||'mensal'}));
     state.dividas = (d.data||[]).map(x=>({
       ...x,
@@ -658,12 +709,16 @@
     sobraEl.textContent = fmt(sobra);
     document.getElementById('s-sobra-card').className = 'stat '+(sobra>=0?'ok':'danger');
 
+    // ── Nova ordem de ataque baseada na sobra disponível ──
+    // Regra: negativadas primeiro SE a sobra cobrir, depois avalanche (maior juros)
+    // Se sobra não cobre a negativada, pula para próxima que cabe
     function ordenarAtaque(lista, sobraDisp){
       const porJuros = [...lista].sort((a,b)=> juroPeso(b.juros)-juroPeso(a.juros));
       const resultado = [];
       const restantes = [...porJuros];
       let saldoRestante = sobraDisp;
 
+      // 1ª passagem: negativadas que cabem na sobra
       const negCabem = restantes.filter(d=>d.status==='negativado'&&Number(d.valor)<=saldoRestante);
       negCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
@@ -671,6 +726,7 @@
         restantes.splice(restantes.indexOf(d),1);
       });
 
+      // 2ª passagem: demais que cabem, por maior juros
       const demaisCabem = restantes.filter(d=>Number(d.valor)<=saldoRestante);
       demaisCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
@@ -678,13 +734,16 @@
         restantes.splice(restantes.indexOf(d),1);
       });
 
+      // 3ª passagem: negativadas que não couberam
       const negNaoCabem = restantes.filter(d=>d.status==='negativado');
       negNaoCabem.forEach(d=>{
         resultado.push({...d, _cabe:false});
         restantes.splice(restantes.indexOf(d),1);
       });
 
+      // 4ª passagem: resto por maior juros
       restantes.forEach(d=> resultado.push({...d, _cabe:false}));
+
       return resultado;
     }
 
@@ -782,6 +841,7 @@
     }
 
     function fimParcela(g){
+      // Calcula a data de término corretamente
       const [y,m,d] = g.dataInicio.split('-').map(Number);
       const n = Number(g.numParcelas);
       const fim = new Date(y, m-1+n-1, d);
@@ -814,10 +874,9 @@
       btn.onclick = ()=>{
         const g = state.gastos.find(x=>x.id===btn.dataset.id);
         if(!g) return;
-        const novoRaw = prompt(`Consumo real de "${g.nome}" este mês:\n(estimativa: ${fmt(g.valorBase||g.valor)})`, String(g.valor).replace('.',','));
-        if(!novoRaw) return;
-        const novo = parseVal(novoRaw);
-        if(isNaN(novo)||novo<=0) return;
+        const novoRaw = prompt(`Consumo real de "${g.nome}" este mês:\n(estimativa: ${fmt(g.valorBase||g.valor)})`, g.valor);
+        const novo = Number(novoRaw);
+        if(!novoRaw||!novo||novo<=0) return;
         const anterior = g.valor;
         g.valor = novo;
         atualizarGasto(g);
@@ -888,7 +947,7 @@
     renderGraficos(rendaTotal, totalGastos, sobra, ativas);
   }
 
-  // Instâncias dos gráficos
+  // Instâncias dos gráficos (para destruir antes de recriar)
   let _charts = {};
   function criarChart(id, config){
     if(_charts[id]) _charts[id].destroy();
@@ -901,6 +960,7 @@
     const moss = '#3B5A45', rust = '#A8542F', gold = '#C99A3B', muted = '#6F6A5C';
     const hoje = new Date();
 
+    // ── Gráfico 1: Barras entradas vs gastos últimos 6 meses ──
     const meses = [];
     const labMeses = [];
     for(let i=5;i>=0;i--){
@@ -909,15 +969,16 @@
       labMeses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
     }
     const mesAtual = hoje.toISOString().slice(0,7);
+    // Para meses passados usamos histórico; para o mês atual usamos state direto
     const entMes = meses.map(m => m===mesAtual
       ? rendaTotal
       : state.historico.filter(h=>h.tipo==='entrada'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=parseVal((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]||'0'); return a+(isNaN(v)?0:v); },0)
+          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
     );
     const gastMes = meses.map(m => m===mesAtual
       ? totalGastos
       : state.historico.filter(h=>h.tipo==='gasto'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=parseVal((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]||'0'); return a+(isNaN(v)?0:v); },0)
+          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
     );
     const sobraMes = meses.map((m,i)=>Math.max(0, entMes[i]-gastMes[i]));
 
@@ -941,11 +1002,13 @@
       }
     });
 
+    // ── Gráfico 2: Linha — total de dívidas ao longo do tempo ──
     const totalInicial = state.dividas.reduce((a,d)=>a+Number(d.valor),0);
     const totalPago = state.pagamentosMes.reduce((a,p)=>a+Number(p.valor),0);
+    // Reconstrói saldo por mês usando pagamentos
     const pagPorMes = {};
     state.pagamentosMes.forEach(p=>{ pagPorMes[p.mesRef]=(pagPorMes[p.mesRef]||0)+Number(p.valor); });
-    let saldo = totalInicial + totalPago;
+    let saldo = totalInicial + totalPago; // saldo lá atrás
     const dadosDividas = meses.map(m=>{ saldo-=(pagPorMes[m]||0); return Math.max(0,saldo); });
 
     criarChart('chart-dividas',{
@@ -968,6 +1031,7 @@
       }
     });
 
+    // ── Gráfico 3: Pizza — divisão dos gastos por tipo ──
     const tiposMap = {'fixo-imutavel':'Fixo imutável','fixo-consumo':'Consumo','variavel':'Variável','parcelado':'Parcelado'};
     const porTipo = {};
     state.gastos.forEach(g=>{ const t=tiposMap[g.tipo]||g.tipo; porTipo[t]=(porTipo[t]||0)+Number(g.valor); });
@@ -1001,6 +1065,7 @@
           <button class="del-entrada" data-id="${en.id}">✕</button>
         </div>`).join('');
 
+    // Handler de duplo toque para entradas — não usa .del genérico
     document.querySelectorAll('.del-entrada').forEach(btn=>{
       btn.onclick = ()=>{
         if(btn.dataset.confirming==='1'){
@@ -1084,11 +1149,12 @@
       compromissos.push({destaque:false, dataOrdenacao:dt, label:`${d.nome} — parcela ${d.parcelaAtual} de ${d.totalParcelas}`,
         valor:d.valorParcela, dataTexto:dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})});
     });
-    const parcelados = state.gastos.filter(g=>g.tipo==='parcelado'&&g.numParcelas&&g.dataInicio);
+    // Parcelados na linha do tempo
     parcelados.forEach(g=>{
       const pc = calcParcelas(g);
       if(!pc) return;
       const [y,m,d] = g.dataInicio.split('-').map(Number);
+      // Próximas 3 parcelas futuras
       for(let i=pc.parcelaAtual-1;i<pc.n&&i<pc.parcelaAtual+2;i++){
         const dt = new Date(y,m-1+i,d);
         if(dt>=hoje){
@@ -1100,6 +1166,7 @@
           });
         }
       }
+      // Data de término
       const fim = new Date(y,m-1+pc.n-1,d);
       if(fim>=hoje){
         compromissos.push({
@@ -1155,6 +1222,7 @@
     const sugestaoEl = document.getElementById('plano-sugestao');
     if(ativas.length===0){ sugestaoEl.innerHTML='<p class="empty">Cadastre dívidas para ver a sugestão.</p>'; return; }
     if(sobraRestante<=0){ sugestaoEl.innerHTML='<p class="empty">Sem sobra disponível este mês. Aguarde a próxima entrada.</p>'; return; }
+    // Nova lógica: negativadas que cabem → demais por maior juros → parcial se nada cabe
     const porJuros = [...ativas].sort((a,b)=>juroPeso(b.juros)-juroPeso(a.juros));
     let saldo = sobraRestante;
     const usadas = new Set();
@@ -1218,11 +1286,11 @@
   toggleCamposGasto();
 
   function atualizarPreviewParcela(){
-    const valor = parseVal(document.getElementById('g-valor').value);
+    const valor = Number(document.getElementById('g-valor').value);
     const n = Number(document.getElementById('g-num-parcelas').value);
     const dataInicio = document.getElementById('g-data-inicio').value;
     const preview = document.getElementById('g-parcela-preview');
-    if(!isNaN(valor)&&valor>0&&n&&n>=2&&dataInicio){
+    if(valor&&n&&n>=2&&dataInicio){
       const parcela = Math.round((valor/n)*100)/100;
       const [y,m,d] = dataInicio.split('-').map(Number);
       const fim = new Date(y,m-1+n-1,d);
@@ -1249,12 +1317,12 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('e-nome').value.trim();
-    const valor = parseVal(document.getElementById('e-valor').value);
+    const valor = Number(document.getElementById('e-valor').value);
     const categoria = document.getElementById('e-categoria').value;
     const diaRaw = document.getElementById('e-dia').value;
     const dia = diaRaw ? Math.min(31,Math.max(1,Number(diaRaw))) : null;
     const recorrencia = document.getElementById('e-recorrencia').value;
-    if(!nome||isNaN(valor)||valor<=0){ btn.disabled=false; return; }
+    if(!nome||!valor){ btn.disabled=false; return; }
     await salvarEntrada({nome,valor,categoria,dia,recorrencia});
     await salvarHistorico('entrada',`${nome}: ${fmt(valor)} (${catLabel(categoria)})${dia?` · dia ${dia}`:''}`);
     e.target.reset();
@@ -1266,9 +1334,9 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('d-nome').value.trim();
-    const valor = parseVal(document.getElementById('d-valor').value);
-    const minimo = parseVal(document.getElementById('d-minimo').value);
-    if(!nome||isNaN(valor)||valor<=0||isNaN(minimo)||minimo<=0){ btn.disabled=false; return; }
+    const valor = Number(document.getElementById('d-valor').value);
+    const minimo = Number(document.getElementById('d-minimo').value);
+    if(!nome||!valor||!minimo){ btn.disabled=false; return; }
     const status = document.getElementById('d-status').value;
     const dataNegativado = status==='negativado' ? document.getElementById('d-data-negativado').value||null : null;
     const maxOrdem = state.dividas.reduce((m,d)=>Math.max(m,d.ordem??-1),-1);
@@ -1282,8 +1350,8 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('g-nome').value.trim();
-    const valor = parseVal(document.getElementById('g-valor').value);
-    if(!nome||isNaN(valor)||valor<=0){ btn.disabled=false; return; }
+    const valor = Number(document.getElementById('g-valor').value);
+    if(!nome||!valor){ btn.disabled=false; return; }
     const tipo = document.getElementById('g-tipo').value;
     const vencimento = tipo!=='parcelado' ? (document.getElementById('g-vencimento').value||null) : null;
     const gastoRecorrencia = tipo!=='parcelado' ? document.getElementById('g-gasto-recorrencia').value : 'unica';
@@ -1319,11 +1387,13 @@
         msgEl.textContent = signUpError.message.includes('already')?'E-mail já cadastrado. Use a aba Entrar.':signUpError.message;
         btn.disabled=false; return;
       }
+      // Se o Supabase já retornou sessão (confirm email desativado), entra direto
       if(signUpData?.session?.user){
         msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
         entrarNoApp(signUpData.session.user);
         return;
       }
+      // Caso contrário tenta login imediato com a senha digitada
       msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
     }
 
@@ -1399,10 +1469,177 @@
     }, 1500);
   };
 
+  // Detectar se o usuário voltou pelo link de recuperação (hash #access_token na URL)
   sb.auth.onAuthStateChange(async (event, session)=>{
     if(event==='PASSWORD_RECOVERY'){
       mostrarTela('redefinir-screen');
     }
+  });
+
+  // ── CALCULADORA DE JUROS ──────────────────────────────────────────────────
+  function fmtCalc(n){ return 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function resultadoHtml(linhas, botoes){
+    return `<div class="calc-resultado">${linhas.map(l=>`
+      <div class="cr-linha">
+        <span>${l.label}</span>
+        <span class="${l.cls||''}">${l.valor}</span>
+      </div>`).join('')}</div>
+      <div class="calc-enviar">${botoes.map(b=>`
+        <button data-acao="${b.acao}" data-payload='${JSON.stringify(b.payload)}'>${b.label}</button>
+      `).join('')}</div>`;
+  }
+
+  function enviarParaApp(acao, payload){
+    if(acao==='divida'){
+      document.getElementById('d-nome').value = payload.nome||'';
+      document.getElementById('d-valor').value = payload.valor||'';
+      document.getElementById('d-minimo').value = payload.minimo||'';
+      document.querySelector('nav button[data-tab="dividas"]').click();
+      alert('Dados preenchidos na aba Dívidas! Confira e clique em Adicionar.');
+    } else if(acao==='gasto'){
+      document.getElementById('g-nome').value = payload.nome||'';
+      document.getElementById('g-valor').value = payload.valor||'';
+      document.querySelector('nav button[data-tab="gastos"]').click();
+      alert('Dados preenchidos na aba Gastos! Confira e clique em Adicionar.');
+    }
+  }
+
+  // Modo compostos
+  document.getElementById('cc-calcular').onclick = ()=>{
+    const valor = Number(document.getElementById('cc-valor').value);
+    const taxa = Number(document.getElementById('cc-taxa').value)/100;
+    const meses = Number(document.getElementById('cc-meses').value);
+    if(!valor||!taxa||!meses) return;
+    const final = valor * Math.pow(1+taxa, meses);
+    const juros = final - valor;
+    const el = document.getElementById('cc-resultado');
+    el.innerHTML = resultadoHtml([
+      {label:'Valor atual',valor:fmtCalc(valor)},
+      {label:'Taxa mensal',valor:(taxa*100).toFixed(2)+'% ao mês'},
+      {label:'Período',valor:meses+' meses'},
+      {label:'Juros acumulados',valor:fmtCalc(juros),cls:'cr-destaque'},
+      {label:'Total a pagar',valor:fmtCalc(final),cls:'cr-destaque'},
+    ],[
+      {label:'→ Adicionar como Dívida',acao:'divida',payload:{nome:'Dívida com juros',valor:Math.round(final),minimo:Math.round(final/meses)}},
+    ]);
+    el.querySelectorAll('.calc-enviar button').forEach(b=>{
+      b.onclick = ()=> enviarParaApp(b.dataset.acao, JSON.parse(b.dataset.payload));
+    });
+  };
+
+  // Modo parcelamento
+  document.getElementById('cp-calcular').onclick = ()=>{
+    const valor = Number(document.getElementById('cp-valor').value);
+    const parcelas = Number(document.getElementById('cp-parcelas').value);
+    const taxa = Number(document.getElementById('cp-taxa').value)/100;
+    const parcelaInformada = Number(document.getElementById('cp-parcela-val').value);
+    if(!parcelas) return;
+    let parcelaCalc, totalPago, jurosTotal;
+    if(parcelaInformada){
+      parcelaCalc = parcelaInformada;
+      totalPago = parcelaInformada * parcelas;
+      jurosTotal = totalPago - (valor||totalPago);
+    } else if(valor&&taxa){
+      if(taxa===0){ parcelaCalc=valor/parcelas; } else {
+        parcelaCalc = valor*(taxa*Math.pow(1+taxa,parcelas))/(Math.pow(1+taxa,parcelas)-1);
+      }
+      totalPago = parcelaCalc * parcelas;
+      jurosTotal = totalPago - valor;
+    } else return;
+    const el = document.getElementById('cp-resultado');
+    el.innerHTML = resultadoHtml([
+      {label:'Valor à vista',valor:fmtCalc(valor||totalPago)},
+      {label:'Parcelas',valor:parcelas+'x de '+fmtCalc(parcelaCalc)},
+      {label:'Total pago',valor:fmtCalc(totalPago),cls:'cr-destaque'},
+      {label:'Juros pagos',valor:fmtCalc(jurosTotal),cls:'cr-destaque'},
+      {label:'Custo real (%)',valor:((jurosTotal/(valor||totalPago))*100).toFixed(1)+'% a mais'},
+    ],[
+      {label:'→ Adicionar como Dívida',acao:'divida',payload:{nome:'Parcelamento',valor:Math.round(totalPago),minimo:Math.round(parcelaCalc)}},
+      {label:'→ Adicionar como Gasto',acao:'gasto',payload:{nome:'Parcela mensal',valor:Math.round(parcelaCalc)}},
+    ]);
+    el.querySelectorAll('.calc-enviar button').forEach(b=>{
+      b.onclick = ()=> enviarParaApp(b.dataset.acao, JSON.parse(b.dataset.payload));
+    });
+  };
+
+  // Modo antecipação
+  document.getElementById('ca-calcular').onclick = ()=>{
+    const valor = Number(document.getElementById('ca-valor').value);
+    const taxa = Number(document.getElementById('ca-taxa').value)/100;
+    const prazo = Number(document.getElementById('ca-prazo').value);
+    const antecipa = Number(document.getElementById('ca-antecipa').value);
+    if(!valor||!taxa||!prazo||!antecipa||antecipa>=prazo) return;
+    const calcTotal = (v,t,n)=>{ if(t===0) return v; return v*(t*Math.pow(1+t,n))/(Math.pow(1+t,n)-1)*n; };
+    const totalOriginal = calcTotal(valor,taxa,prazo);
+    const saldoNaAntecipacao = valor*Math.pow(1+taxa,antecipa) - (calcTotal(valor,taxa,prazo)/prazo)*((Math.pow(1+taxa,antecipa)-1)/taxa);
+    const totalAntecipado = calcTotal(valor,taxa,antecipa)*antecipa/antecipa*antecipa + saldoNaAntecipacao;
+    const economia = totalOriginal - (calcTotal(valor,taxa,antecipa) + saldoNaAntecipacao);
+    const el = document.getElementById('ca-resultado');
+    el.innerHTML = resultadoHtml([
+      {label:'Total pagando em '+prazo+' meses',valor:fmtCalc(totalOriginal),cls:'cr-destaque'},
+      {label:'Total pagando em '+antecipa+' meses',valor:fmtCalc(totalOriginal-Math.max(economia,0))},
+      {label:'Economia estimada',valor:fmtCalc(Math.max(economia,0)),cls:'cr-ok'},
+      {label:'Meses economizados',valor:(prazo-antecipa)+' meses'},
+    ],[
+      {label:'→ Adicionar como Dívida',acao:'divida',payload:{nome:'Dívida a antecipar',valor:Math.round(valor),minimo:Math.round(valor/antecipa)}},
+    ]);
+    el.querySelectorAll('.calc-enviar button').forEach(b=>{
+      b.onclick = ()=> enviarParaApp(b.dataset.acao, JSON.parse(b.dataset.payload));
+    });
+  };
+
+  // Modo comparador
+  document.getElementById('cmp-calcular').onclick = ()=>{
+    function calcDivida(valor,taxa,meses){
+      if(!taxa) return {total:valor,juros:0,parcela:valor/meses};
+      const t=taxa/100;
+      const parcela = valor*(t*Math.pow(1+t,meses))/(Math.pow(1+t,meses)-1);
+      return {total:parcela*meses, juros:parcela*meses-valor, parcela};
+    }
+    const a = {
+      nome:document.getElementById('cmp-a-nome').value||'Dívida A',
+      valor:Number(document.getElementById('cmp-a-valor').value),
+      taxa:Number(document.getElementById('cmp-a-taxa').value),
+      meses:Number(document.getElementById('cmp-a-meses').value),
+    };
+    const b = {
+      nome:document.getElementById('cmp-b-nome').value||'Dívida B',
+      valor:Number(document.getElementById('cmp-b-valor').value),
+      taxa:Number(document.getElementById('cmp-b-taxa').value),
+      meses:Number(document.getElementById('cmp-b-meses').value),
+    };
+    if(!a.valor||!a.meses||!b.valor||!b.meses) return;
+    const ra = calcDivida(a.valor,a.taxa,a.meses);
+    const rb = calcDivida(b.valor,b.taxa,b.meses);
+    const vencedor = ra.juros<=rb.juros ? a.nome : b.nome;
+    const el = document.getElementById('cmp-resultado');
+    el.innerHTML = `<div class="cmp-vencedor">✓ ${vencedor} custa menos no total</div>`
+    + resultadoHtml([
+      {label:a.nome+' — parcela',valor:fmtCalc(ra.parcela)},
+      {label:a.nome+' — total pago',valor:fmtCalc(ra.total),cls:ra.juros>rb.juros?'cr-destaque':''},
+      {label:a.nome+' — juros pagos',valor:fmtCalc(ra.juros),cls:ra.juros>rb.juros?'cr-destaque':''},
+      {label:b.nome+' — parcela',valor:fmtCalc(rb.parcela)},
+      {label:b.nome+' — total pago',valor:fmtCalc(rb.total),cls:rb.juros>ra.juros?'cr-destaque':''},
+      {label:b.nome+' — juros pagos',valor:fmtCalc(rb.juros),cls:rb.juros>ra.juros?'cr-destaque':''},
+      {label:'Diferença entre as duas',valor:fmtCalc(Math.abs(ra.total-rb.total)),cls:'cr-ok'},
+    ],[
+      {label:'→ '+a.nome+' como Dívida',acao:'divida',payload:{nome:a.nome,valor:Math.round(ra.total),minimo:Math.round(ra.parcela)}},
+      {label:'→ '+b.nome+' como Dívida',acao:'divida',payload:{nome:b.nome,valor:Math.round(rb.total),minimo:Math.round(rb.parcela)}},
+    ]);
+    el.querySelectorAll('.calc-enviar button').forEach(b=>{
+      b.onclick = ()=> enviarParaApp(b.dataset.acao, JSON.parse(b.dataset.payload));
+    });
+  };
+
+  // Toggle entre modos
+  document.querySelectorAll('.calc-modo-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('.calc-modo-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.calc-painel').forEach(p=>p.style.display='none');
+      btn.classList.add('active');
+      document.getElementById('calc-'+btn.dataset.modo).style.display='block';
+    };
   });
 
   // ── INICIALIZAÇÃO ─────────────────────────────────────────────────────────
