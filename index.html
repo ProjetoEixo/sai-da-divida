@@ -17,98 +17,62 @@
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:480px;margin:0 auto;padding:0 0 4rem;}
-
-  /* AUTH */
-  #auth-screen{
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:var(--moss-deep);padding:1.5rem;
-  }
-  .auth-box{
-    background:var(--paper-raised);border-radius:20px;padding:2rem 1.75rem;
-    width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,0.25);
-  }
+  #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;}
+  .auth-box{background:var(--paper-raised);border-radius:20px;padding:2rem 1.75rem;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,0.25);}
   .auth-logo{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--moss-deep);margin:0 0 .3rem;}
   .auth-sub{font-size:13px;color:var(--muted);margin:0 0 1.75rem;}
   .auth-tabs{display:flex;gap:4px;background:var(--paper);border-radius:10px;padding:4px;margin-bottom:1.25rem;}
-  .auth-tab{flex:1;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
-    color:var(--muted);padding:8px;border-radius:7px;cursor:pointer;transition:all .15s;}
+  .auth-tab{flex:1;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--muted);padding:8px;border-radius:7px;cursor:pointer;transition:all .15s;}
   .auth-tab.active{background:var(--paper-raised);color:var(--moss-deep);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
   .auth-field{margin-bottom:12px;}
   .auth-field label{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-bottom:5px;}
-  .auth-field input{
-    width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;
-    font-family:'Inter',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);
-  }
+  .auth-field input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;font-family:'Inter',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);}
   .auth-field input:focus{outline:none;border-color:var(--moss);box-shadow:0 0 0 3px rgba(59,90,69,0.12);}
-  .auth-btn{
-    width:100%;padding:12px;border:none;border-radius:9px;background:var(--moss-deep);color:#EFEAD9;
-    font-family:'Inter',sans-serif;font-weight:500;font-size:14.5px;cursor:pointer;margin-top:4px;
-    transition:opacity .15s;
-  }
+  .auth-btn{width:100%;padding:12px;border:none;border-radius:9px;background:var(--moss-deep);color:#EFEAD9;font-family:'Inter',sans-serif;font-weight:500;font-size:14.5px;cursor:pointer;margin-top:4px;transition:opacity .15s;}
   .auth-btn:disabled{opacity:.5;cursor:not-allowed;}
   .auth-msg{font-size:12.5px;text-align:center;margin-top:10px;min-height:18px;}
   .auth-msg.err{color:var(--danger);}
   .auth-msg.ok{color:var(--ok);}
-
-  /* APP */
   #app-screen{display:none;}
   header{padding:2.5rem 1.5rem 2rem;background:var(--moss-deep);color:#EFEAD9;position:relative;overflow:hidden;}
-  header::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;
-    background:radial-gradient(circle,rgba(201,154,59,0.18),transparent 70%);}
+  header::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,154,59,0.18),transparent 70%);}
   .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 .6rem;}
   h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:1.15;margin:0 0 .4rem;letter-spacing:-.01em;}
   header p.desc{margin:0;font-size:14px;color:#C9C2A8;max-width:30ch;}
   .header-user{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
   .header-email{font-size:12px;color:#C9C2A8;font-family:'JetBrains Mono',monospace;}
-  .btn-sair{border:1px solid rgba(255,255,255,0.2);background:transparent;color:#C9C2A8;
-    font-family:'Inter',sans-serif;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;}
+  .btn-sair{border:1px solid rgba(255,255,255,0.2);background:transparent;color:#C9C2A8;font-family:'Inter',sans-serif;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;}
   .btn-sair:hover{background:rgba(255,255,255,0.1);}
-
-  nav{display:flex;gap:6px;padding:10px 1rem;background:var(--paper);position:sticky;top:0;z-index:10;
-    border-bottom:1px solid var(--line);overflow-x:auto;}
-  nav button{flex-shrink:0;border:none;background:transparent;font-family:'Inter',sans-serif;
-    font-size:12.5px;font-weight:500;color:var(--muted);padding:8px 10px;border-radius:999px;
-    cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
+  nav{display:flex;gap:6px;padding:10px 1rem;background:var(--paper);position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line);overflow-x:auto;}
+  nav button{flex-shrink:0;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
   nav button.active{background:var(--moss-deep);color:#EFEAD9;}
-
   main{padding:1.5rem 1.25rem 0;}
   section{display:none;}
   section.active{display:block;}
-
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;}
   .stat{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
   .stat .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;}
   .stat .value{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:0;}
   .stat.danger .value{color:var(--danger);}
   .stat.ok .value{color:var(--ok);}
-
   .card{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:1.25rem;}
   .card h2{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 4px;}
   .card .sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;}
-
   .priority-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
   .priority-row:last-child{border-bottom:none;}
-  .priority-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
-    width:24px;height:24px;border-radius:50%;background:var(--danger-soft);color:var(--danger);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .priority-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;width:24px;height:24px;border-radius:50%;background:var(--danger-soft);color:var(--danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .priority-row .pname{font-size:14.5px;font-weight:500;margin:0;}
   .priority-row .pmeta{font-size:12px;color:var(--muted);margin:2px 0 0;}
-
   .empty{font-size:13px;color:var(--muted);text-align:center;padding:1.2rem 0;}
   .loading{font-size:13px;color:var(--muted);text-align:center;padding:1.5rem 0;font-style:italic;}
-
   form.entry{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:1.25rem;}
   .field-row{display:flex;gap:8px;margin-bottom:8px;}
-  input,select{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;
-    border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);}
+  input,select{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);}
   input:focus,select:focus{outline:none;border-color:var(--moss);box-shadow:0 0 0 3px rgba(59,90,69,0.15);}
-  button.primary{width:100%;margin-top:10px;padding:11px;border:none;border-radius:9px;
-    background:var(--moss-deep);color:#EFEAD9;font-family:'Inter',sans-serif;font-weight:500;font-size:14px;cursor:pointer;}
+  button.primary{width:100%;margin-top:10px;padding:11px;border:none;border-radius:9px;background:var(--moss-deep);color:#EFEAD9;font-family:'Inter',sans-serif;font-weight:500;font-size:14px;cursor:pointer;}
   button.primary:disabled{opacity:.5;cursor:not-allowed;}
   button.primary:active:not(:disabled){transform:scale(.98);}
-
-  .item{display:flex;align-items:center;gap:10px;background:var(--paper-raised);border:1px solid var(--line);
-    border-radius:11px;padding:11px 14px;margin-bottom:8px;}
+  .item{display:flex;align-items:center;gap:10px;background:var(--paper-raised);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px;}
   .item .iname{font-size:14px;font-weight:500;margin:0;}
   .item .imeta{font-size:12px;color:var(--muted);margin:2px 0 0;}
   .item .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
@@ -121,45 +85,34 @@
   .tag.parcelado{background:#DDE3F0;color:#3B5A8A;}
   .tag.paga{background:var(--ok-soft);color:var(--ok);}
   .tag.consignado{background:#E8E0F0;color:#5A3A8A;}
-  .consig-desconto{
-    font-size:11.5px;color:var(--muted);margin:3px 0 0;
-    font-family:'JetBrains Mono',monospace;
-  }
-  .entrada-liquido{
-    font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--moss-deep);
-  }
+  .consig-desconto{font-size:11.5px;color:var(--muted);margin:3px 0 0;font-family:'JetBrains Mono',monospace;}
+  .entrada-liquido{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--moss-deep);}
   .entrada-detalhe{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
   .del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
   .del:hover{color:var(--danger);}
   .del-entrada{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:6px;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace;}
   .del-entrada:hover{color:var(--danger);}
-
   .item-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
   .reorder{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:14px;line-height:1;}
   .reorder:disabled{opacity:.25;cursor:default;}
   .reorder:hover:not(:disabled){color:var(--moss-deep);}
   .item.paga{opacity:.6;}
   .item.paga .iname{text-decoration:line-through;}
-  .check-btn{border:1px solid var(--line);background:var(--paper-raised);color:var(--moss-deep);cursor:pointer;
-    border-radius:7px;padding:6px 10px;font-size:11.5px;font-family:'Inter',sans-serif;font-weight:500;flex-shrink:0;white-space:nowrap;}
+  .check-btn{border:1px solid var(--line);background:var(--paper-raised);color:var(--moss-deep);cursor:pointer;border-radius:7px;padding:6px 10px;font-size:11.5px;font-family:'Inter',sans-serif;font-weight:500;flex-shrink:0;white-space:nowrap;}
   .check-btn:hover{background:var(--ok-soft);border-color:var(--ok);}
   .check-btn.undo{color:var(--muted);}
-
   .subhead{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:1.5rem 0 .6rem;}
   .cat-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
   .cat-row:last-child{border-bottom:none;}
   .cat-row .cat-name{color:var(--muted);}
   .cat-row .cat-val{font-weight:500;font-family:'JetBrains Mono',monospace;}
-
   #d-data-negativado-row{display:none;}
   #d-data-negativado-row.show{display:flex;}
   .neg-since{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--danger);margin:2px 0 0;}
-
   .timeline{margin-top:1.25rem;}
   .tl-step{display:flex;gap:14px;margin-bottom:0;}
   .tl-line{width:1px;background:var(--line);flex-shrink:0;margin-left:11px;}
-  .tl-dot{width:23px;height:23px;border-radius:50%;background:var(--moss-deep);color:#EFEAD9;
-    font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .tl-dot{width:23px;height:23px;border-radius:50%;background:var(--moss-deep);color:#EFEAD9;font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .tl-dot.entrada{background:var(--ok);}
   .tl-dot.gasto{background:var(--rust);}
   .tl-dot.divida-paga{background:var(--gold);color:var(--ink);}
@@ -167,33 +120,16 @@
   .tl-content .tl-when{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:0 0 3px;}
   .tl-content .tl-what{font-size:14px;font-weight:500;margin:0 0 2px;}
   .tl-content .tl-detail{font-size:12.5px;color:var(--muted);margin:0;}
-  .calc-modo-btn{
-    border:1px solid var(--line);background:var(--paper-raised);
-    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
-    color:var(--muted);padding:10px 8px;border-radius:10px;cursor:pointer;
-    text-align:center;line-height:1.3;
-  }
+  .calc-modo-btn{border:1px solid var(--line);background:var(--paper-raised);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--muted);padding:10px 8px;border-radius:10px;cursor:pointer;text-align:center;line-height:1.3;}
   .calc-modo-btn.active{background:var(--moss-deep);color:#EFEAD9;border-color:var(--moss-deep);}
-  .calc-resultado{
-    background:var(--paper);border-radius:10px;padding:14px;
-  }
-  .calc-resultado .cr-linha{
-    display:flex;justify-content:space-between;padding:6px 0;
-    border-bottom:1px solid var(--line);font-size:13.5px;
-  }
+  .calc-resultado{background:var(--paper);border-radius:10px;padding:14px;}
+  .calc-resultado .cr-linha{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
   .calc-resultado .cr-linha:last-child{border-bottom:none;}
   .calc-resultado .cr-destaque{font-weight:600;color:var(--danger);}
   .calc-resultado .cr-ok{font-weight:600;color:var(--ok);}
-  .calc-enviar{
-    display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;
-  }
-  .calc-enviar button{
-    flex:1;padding:9px;border:1px solid var(--line);border-radius:8px;
-    font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;
-    cursor:pointer;background:var(--paper-raised);color:var(--moss-deep);
-  }
-  .auth-link{background:none;border:none;color:var(--moss);font-family:'Inter',sans-serif;
-    font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;display:block;text-align:center;}
+  .calc-enviar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .calc-enviar button{flex:1;padding:9px;border:1px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;background:var(--paper-raised);color:var(--moss-deep);}
+  .auth-link{background:none;border:none;color:var(--moss);font-family:'Inter',sans-serif;font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;display:block;text-align:center;}
   .auth-link:hover{color:var(--moss-deep);}
   footer{text-align:center;font-size:11.5px;color:var(--muted);padding:1.5rem 1.25rem 0;}
 </style>
@@ -224,7 +160,7 @@
 </div>
 
 <!-- TELA DE RECUPERAÇÃO DE SENHA -->
-<div id="recuperar-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
+<div id="recuperar-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
   <div class="auth-box">
     <p class="auth-logo">Sai da Dívida</p>
     <p class="auth-sub">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
@@ -238,7 +174,7 @@
   </div>
 </div>
 
-<!-- TELA DE REDEFINIÇÃO DE SENHA (após clicar no link do e-mail) -->
+<!-- TELA DE REDEFINIÇÃO DE SENHA -->
 <div id="redefinir-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
   <div class="auth-box">
     <p class="auth-logo">Sai da Dívida</p>
@@ -317,10 +253,7 @@
         </div>
         <button class="primary" type="submit">Adicionar entrada</button>
       </form>
-
       <div id="lista-entradas"><p class="loading">Carregando...</p></div>
-
-      <!-- Consignados -->
       <p class="subhead" style="margin-top:1.5rem;">Descontos consignados</p>
       <form class="entry" id="form-consignado">
         <div class="field-row"><input id="cn-nome" placeholder="Descrição (ex: Consignado Banco X)" required></div>
@@ -336,7 +269,6 @@
         <button class="primary" type="submit">Adicionar consignado</button>
       </form>
       <div id="lista-consignados"></div>
-
       <div class="card" style="margin-top:1.25rem;">
         <h2>Calendário de recebimento</h2>
         <p class="sub" style="margin-bottom:0;">Suas entradas, ordenadas pelo dia em que caem no mês.</p>
@@ -459,15 +391,12 @@
     </section>
 
     <section id="tab-calc">
-      <!-- Seletor de modo -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;">
         <button class="calc-modo-btn active" data-modo="compostos">📈 Crescimento da dívida</button>
         <button class="calc-modo-btn" data-modo="parcelamento">💳 Custo do parcelamento</button>
         <button class="calc-modo-btn" data-modo="antecipacao">⚡ Economia antecipando</button>
         <button class="calc-modo-btn" data-modo="comparador">⚖️ Comparador de dívidas</button>
       </div>
-
-      <!-- MODO 1: Juros compostos -->
       <div id="calc-compostos" class="card calc-painel">
         <h2>Crescimento da dívida</h2>
         <p class="sub">Quanto a dívida vai virar se você não pagar.</p>
@@ -479,8 +408,6 @@
         <button class="primary" id="cc-calcular">Calcular</button>
         <div id="cc-resultado" style="margin-top:12px;"></div>
       </div>
-
-      <!-- MODO 2: Custo do parcelamento -->
       <div id="calc-parcelamento" class="card calc-painel" style="display:none;">
         <h2>Custo do parcelamento</h2>
         <p class="sub">Quanto você realmente vai pagar no total.</p>
@@ -493,8 +420,6 @@
         <button class="primary" id="cp-calcular">Calcular</button>
         <div id="cp-resultado" style="margin-top:12px;"></div>
       </div>
-
-      <!-- MODO 3: Economia antecipando -->
       <div id="calc-antecipacao" class="card calc-painel" style="display:none;">
         <h2>Economia antecipando o pagamento</h2>
         <p class="sub">Quanto você economiza quitando antes do prazo.</p>
@@ -507,8 +432,6 @@
         <button class="primary" id="ca-calcular">Calcular</button>
         <div id="ca-resultado" style="margin-top:12px;"></div>
       </div>
-
-      <!-- MODO 4: Comparador -->
       <div id="calc-comparador" class="card calc-painel" style="display:none;">
         <h2>Comparador de dívidas</h2>
         <p class="sub">Qual dívida custa mais caro no total.</p>
@@ -543,19 +466,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (async function(){
-  // ── CONFIGURAÇÃO SUPABASE ──────────────────────────────────────────────────
   const SUPA_URL = 'https://zfjdqmdcvntokifvyrkg.supabase.co';
   const SUPA_KEY = 'sb_publishable_JCz3S__JZBhJTUIuNtJemg_9r2KE90v';
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-  // ── ESTADO LOCAL ──────────────────────────────────────────────────────────
   let state = { entradas:[], dividas:[], gastos:[], historico:[], pagamentosMes:[], consignados:[] };
   let currentUser = null;
 
-  // ── HELPERS ───────────────────────────────────────────────────────────────
   const fmt = n => 'R$ ' + (Math.round((n||0)*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const juroPeso = j => j==='alto'?3:j==='medio'?2:1;
-  const statusPeso = s => s==='negativado'?3:s==='atrasado'?2:1;
   const statusLabel = s => s==='negativado'?'negativado':s==='atrasado'?'atrasado':'em dia';
   const catLabel = c => ({salario:'Salário fixo',freelance:'Freelance/autônomo',negocio:'Negócio próprio',extra:'Renda extra',outro:'Outra'}[c]||c);
   const diaLabel = en => en.dia ? ` <span class="tag em-dia">dia ${en.dia}${en.recorrencia==='unica'?'':'/mês'}</span>` : '';
@@ -577,6 +496,8 @@
   function pendentes(){ return state.dividas.filter(d=>!d.paga).sort((a,b)=>a.ordem-b.ordem); }
   function pagas(){ return state.dividas.filter(d=>d.paga); }
   function tipoLabel(t){ return t==='fixo-imutavel'?'fixo':t==='fixo-consumo'?'consumo':t==='parcelado'?'parcelado':'variável'; }
+  function totalConsignados(){ return state.consignados.reduce((a,c)=>a+Number(c.valor),0); }
+  function totalEntradasLiquido(){ return totalEntradas() - totalConsignados(); }
 
   function calcParcelas(g){
     if(g.tipo!=='parcelado'||!g.numParcelas||!g.dataInicio) return null;
@@ -587,14 +508,12 @@
     const inicio = new Date(y,m-1,d);
     const fim = new Date(y,m-1+n-1,d);
     const hoje = new Date();
-    // parcela atual = quantos meses passaram desde o início + 1
     const mesesPassados = (hoje.getFullYear()-inicio.getFullYear())*12 + (hoje.getMonth()-inicio.getMonth());
     const parcelaAtual = Math.min(Math.max(mesesPassados+1,1), n);
     const parcelasRestantes = n - parcelaAtual + 1;
     return { total, n, valorParcela, inicio, fim, parcelaAtual, parcelasRestantes };
   }
 
-  // ── SUPABASE: CARREGAR DADOS ───────────────────────────────────────────────
   async function carregarDados(){
     const uid = currentUser.id;
     const [e,d,g,h,p,cn] = await Promise.all([
@@ -605,7 +524,6 @@
       sb.from('pagamentos_mes').select('*').eq('user_id',uid).order('created_at'),
       sb.from('consignados').select('*').eq('user_id',uid).order('created_at'),
     ]);
-    // Normaliza snake_case do Supabase → camelCase local
     state.entradas = (e.data||[]).map(x=>({...x, recorrencia:x.recorrencia||'mensal'}));
     state.dividas = (d.data||[]).map(x=>({
       ...x,
@@ -637,7 +555,6 @@
     render();
   }
 
-  // ── SUPABASE: SALVAR ───────────────────────────────────────────────────────
   async function salvarEntrada(en){
     const {data,error} = await sb.from('entradas').insert({
       user_id:currentUser.id, nome:en.nome, valor:en.valor,
@@ -698,8 +615,7 @@
     state.consignados = state.consignados.filter(x=>x.id!==id);
     render();
   }
-  function totalConsignados(){ return state.consignados.reduce((a,c)=>a+Number(c.valor),0); }
-  function totalEntradasLiquido(){ return totalEntradas() - totalConsignados(); }
+  async function salvarGasto(g){
     const {data,error} = await sb.from('gastos').insert({
       user_id:currentUser.id, nome:g.nome, valor:g.valor,
       valor_base:g.valorBase||null, tipo:g.tipo,
@@ -717,22 +633,6 @@
   }
   async function atualizarGasto(g){
     await sb.from('gastos').update({valor:g.valor}).eq('id',g.id);
-  }
-  async function salvarGasto(g){
-    const {data,error} = await sb.from('gastos').insert({
-      user_id:currentUser.id, nome:g.nome, valor:g.valor,
-      valor_base:g.valorBase||null, tipo:g.tipo,
-      vencimento:g.vencimento||null, gasto_recorrencia:g.gastoRecorrencia,
-      num_parcelas:g.numParcelas||null, data_inicio:g.dataInicio||null,
-    }).select().single();
-    if(!error) state.gastos.push({
-      ...data,
-      valorBase:data.valor_base,
-      gastoRecorrencia:data.gasto_recorrencia||'mensal',
-      numParcelas:data.num_parcelas,
-      dataInicio:data.data_inicio,
-    });
-    render();
   }
   async function deletarGasto(id){
     await sb.from('gastos').delete().eq('id',id);
@@ -756,7 +656,6 @@
     });
   }
 
-  // ── RENDER PRINCIPAL ──────────────────────────────────────────────────────
   function render(){
     const ativas = pendentes();
     const quitadas = pagas();
@@ -781,41 +680,29 @@
     sobraEl.textContent = fmt(sobra);
     document.getElementById('s-sobra-card').className = 'stat '+(sobra>=0?'ok':'danger');
 
-    // ── Nova ordem de ataque baseada na sobra disponível ──
-    // Regra: negativadas primeiro SE a sobra cobrir, depois avalanche (maior juros)
-    // Se sobra não cobre a negativada, pula para próxima que cabe
     function ordenarAtaque(lista, sobraDisp){
       const porJuros = [...lista].sort((a,b)=> juroPeso(b.juros)-juroPeso(a.juros));
       const resultado = [];
       const restantes = [...porJuros];
       let saldoRestante = sobraDisp;
-
-      // 1ª passagem: negativadas que cabem na sobra
       const negCabem = restantes.filter(d=>d.status==='negativado'&&Number(d.valor)<=saldoRestante);
       negCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
         saldoRestante -= Number(d.valor);
         restantes.splice(restantes.indexOf(d),1);
       });
-
-      // 2ª passagem: demais que cabem, por maior juros
       const demaisCabem = restantes.filter(d=>Number(d.valor)<=saldoRestante);
       demaisCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
         saldoRestante -= Number(d.valor);
         restantes.splice(restantes.indexOf(d),1);
       });
-
-      // 3ª passagem: negativadas que não couberam
       const negNaoCabem = restantes.filter(d=>d.status==='negativado');
       negNaoCabem.forEach(d=>{
         resultado.push({...d, _cabe:false});
         restantes.splice(restantes.indexOf(d),1);
       });
-
-      // 4ª passagem: resto por maior juros
       restantes.forEach(d=> resultado.push({...d, _cabe:false}));
-
       return resultado;
     }
 
@@ -835,7 +722,6 @@
           </span>
         </div>`).join('');
 
-    // Dívidas
     const listaNeg = document.getElementById('lista-negativadas');
     const listaD = document.getElementById('lista-dividas');
 
@@ -882,7 +768,6 @@
           <button class="del" data-id="${d.id}" data-kind="divida">✕</button>
         </div>`).join('');
 
-    // Gastos
     function itemGastoHtml(g){
       const pc = calcParcelas(g);
       if(pc){
@@ -913,7 +798,6 @@
     }
 
     function fimParcela(g){
-      // Calcula a data de término corretamente
       const [y,m,d] = g.dataInicio.split('-').map(Number);
       const n = Number(g.numParcelas);
       const fim = new Date(y, m-1+n-1, d);
@@ -934,11 +818,20 @@
     document.getElementById('lista-gastos').innerHTML = semData.length===0
       ? '<p class="empty">Nenhum gasto sem data.</p>' : semData.map(itemGastoHtml).join('');
 
-    // Handlers dinâmicos
     document.querySelectorAll('.del').forEach(btn=>{
       btn.onclick = ()=>{
-        if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
-        else if(btn.dataset.kind==='gasto') deletarGasto(btn.dataset.id);
+        if(btn.dataset.confirming==='1'){
+          if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
+          else if(btn.dataset.kind==='gasto') deletarGasto(btn.dataset.id);
+        } else {
+          btn.dataset.confirming='1';
+          btn.textContent='Remover?';
+          btn.style.color='var(--danger)';
+          btn.style.fontSize='11px';
+          setTimeout(()=>{
+            if(btn.isConnected){ btn.dataset.confirming=''; btn.textContent='✕'; btn.style.color=''; btn.style.fontSize=''; }
+          }, 3000);
+        }
       };
     });
 
@@ -1019,7 +912,6 @@
     renderGraficos(rendaTotal, totalGastos, sobra, ativas);
   }
 
-  // Instâncias dos gráficos (para destruir antes de recriar)
   let _charts = {};
   function criarChart(id, config){
     if(_charts[id]) _charts[id].destroy();
@@ -1031,8 +923,6 @@
   function renderGraficos(rendaTotal, totalGastos, sobra, ativas){
     const moss = '#3B5A45', rust = '#A8542F', gold = '#C99A3B', muted = '#6F6A5C';
     const hoje = new Date();
-
-    // ── Gráfico 1: Barras entradas vs gastos últimos 6 meses ──
     const meses = [];
     const labMeses = [];
     for(let i=5;i>=0;i--){
@@ -1041,17 +931,8 @@
       labMeses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
     }
     const mesAtual = hoje.toISOString().slice(0,7);
-    // Para meses passados usamos histórico; para o mês atual usamos state direto
-    const entMes = meses.map(m => m===mesAtual
-      ? rendaTotal
-      : state.historico.filter(h=>h.tipo==='entrada'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
-    );
-    const gastMes = meses.map(m => m===mesAtual
-      ? totalGastos
-      : state.historico.filter(h=>h.tipo==='gasto'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
-    );
+    const entMes = meses.map(m => m===mesAtual ? rendaTotal : 0);
+    const gastMes = meses.map(m => m===mesAtual ? totalGastos : 0);
     const sobraMes = meses.map((m,i)=>Math.max(0, entMes[i]-gastMes[i]));
 
     criarChart('chart-barras',{
@@ -1074,13 +955,11 @@
       }
     });
 
-    // ── Gráfico 2: Linha — total de dívidas ao longo do tempo ──
     const totalInicial = state.dividas.reduce((a,d)=>a+Number(d.valor),0);
     const totalPago = state.pagamentosMes.reduce((a,p)=>a+Number(p.valor),0);
-    // Reconstrói saldo por mês usando pagamentos
     const pagPorMes = {};
     state.pagamentosMes.forEach(p=>{ pagPorMes[p.mesRef]=(pagPorMes[p.mesRef]||0)+Number(p.valor); });
-    let saldo = totalInicial + totalPago; // saldo lá atrás
+    let saldo = totalInicial + totalPago;
     const dadosDividas = meses.map(m=>{ saldo-=(pagPorMes[m]||0); return Math.max(0,saldo); });
 
     criarChart('chart-dividas',{
@@ -1103,7 +982,6 @@
       }
     });
 
-    // ── Gráfico 3: Pizza — divisão dos gastos por tipo ──
     const tiposMap = {'fixo-imutavel':'Fixo imutável','fixo-consumo':'Consumo','variavel':'Variável','parcelado':'Parcelado'};
     const porTipo = {};
     state.gastos.forEach(g=>{ const t=tiposMap[g.tipo]||g.tipo; porTipo[t]=(porTipo[t]||0)+Number(g.valor); });
@@ -1137,7 +1015,6 @@
           <button class="del-entrada" data-id="${en.id}">✕</button>
         </div>`).join('');
 
-    // Handler de duplo toque para entradas — não usa .del genérico
     document.querySelectorAll('.del-entrada').forEach(btn=>{
       btn.onclick = ()=>{
         if(btn.dataset.confirming==='1'){
@@ -1170,14 +1047,12 @@
       ? '<p class="empty">Informe o dia do mês de cada entrada para ver o calendário.</p>'
       : fixas.map(en=>`<div class="cat-row"><span class="cat-name">Dia ${en.dia} · ${en.nome}</span><span class="cat-val">${fmt(en.valor)}</span></div>`).join('');
 
-    // Atualiza select de entradas no form de consignado
     const sel = document.getElementById('cn-entrada-id');
     const selVal = sel.value;
     sel.innerHTML = '<option value="">Selecione a entrada que sofre o desconto</option>'
       + state.entradas.map(en=>`<option value="${en.id}">${en.nome} (${fmt(en.valor)})</option>`).join('');
     if(selVal) sel.value = selVal;
 
-    // Lista de consignados
     const listaCn = document.getElementById('lista-consignados');
     if(state.consignados.length===0){
       listaCn.innerHTML = '<p class="empty">Nenhum desconto consignado cadastrado.</p>';
@@ -1247,7 +1122,8 @@
   function renderSimulacao(sobraMensal, ativas){
     const el = document.getElementById('sim-content');
     const negativadas = ativas.filter(d=>d.status==='negativado');
-    const temCompromissos = state.gastos.some(g=>g.vencimento)||ativas.some(d=>d.parcelado)||negativadas.length>0;
+    const parcelados = state.gastos.filter(g=>g.tipo==='parcelado'&&g.numParcelas&&g.dataInicio);
+    const temCompromissos = state.gastos.some(g=>g.vencimento)||parcelados.length>0||negativadas.length>0;
     if(!temCompromissos){ el.innerHTML='<p class="empty">Cadastre gastos com vencimento, parcele dívidas ou marque como negativadas.</p>'; return; }
 
     const hoje = new Date();
@@ -1261,12 +1137,10 @@
       compromissos.push({destaque:false, dataOrdenacao:dt, label:`${d.nome} — parcela ${d.parcelaAtual} de ${d.totalParcelas}`,
         valor:d.valorParcela, dataTexto:dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})});
     });
-    // Parcelados na linha do tempo
     parcelados.forEach(g=>{
       const pc = calcParcelas(g);
       if(!pc) return;
       const [y,m,d] = g.dataInicio.split('-').map(Number);
-      // Próximas 3 parcelas futuras
       for(let i=pc.parcelaAtual-1;i<pc.n&&i<pc.parcelaAtual+2;i++){
         const dt = new Date(y,m-1+i,d);
         if(dt>=hoje){
@@ -1278,7 +1152,6 @@
           });
         }
       }
-      // Data de término
       const fim = new Date(y,m-1+pc.n-1,d);
       if(fim>=hoje){
         compromissos.push({
@@ -1289,7 +1162,6 @@
         });
       }
     });
-
     state.gastos.filter(g=>g.tipo!=='parcelado'&&g.vencimento).forEach(g=>{
       const [y,m,d] = g.vencimento.split('-').map(Number);
       let dt = new Date(y,m-1,d);
@@ -1334,7 +1206,6 @@
     const sugestaoEl = document.getElementById('plano-sugestao');
     if(ativas.length===0){ sugestaoEl.innerHTML='<p class="empty">Cadastre dívidas para ver a sugestão.</p>'; return; }
     if(sobraRestante<=0){ sugestaoEl.innerHTML='<p class="empty">Sem sobra disponível este mês. Aguarde a próxima entrada.</p>'; return; }
-    // Nova lógica: negativadas que cabem → demais por maior juros → parcial se nada cabe
     const porJuros = [...ativas].sort((a,b)=>juroPeso(b.juros)-juroPeso(a.juros));
     let saldo = sobraRestante;
     const usadas = new Set();
@@ -1370,7 +1241,7 @@
     };
   }
 
-  // ── FORMULÁRIOS ───────────────────────────────────────────────────────────
+  // ── NAVEGAÇÃO ─────────────────────────────────────────────────────────────
   document.querySelectorAll('nav button').forEach(btn=>{
     btn.onclick=()=>{
       document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
@@ -1424,6 +1295,7 @@
   document.getElementById('d-status').addEventListener('change', toggleDataNegativado);
   toggleDataNegativado();
 
+  // ── FORMULÁRIOS ───────────────────────────────────────────────────────────
   document.getElementById('form-entrada').addEventListener('submit', async e=>{
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -1496,8 +1368,20 @@
 
   // ── AUTH ──────────────────────────────────────────────────────────────────
   let modoAuth = 'login';
-  document.getElementById('tab-login').onclick = ()=>{ modoAuth='login'; document.getElementById('tab-login').classList.add('active'); document.getElementById('tab-cadastro').classList.remove('active'); document.getElementById('auth-btn').textContent='Entrar'; document.getElementById('auth-msg').textContent=''; };
-  document.getElementById('tab-cadastro').onclick = ()=>{ modoAuth='cadastro'; document.getElementById('tab-cadastro').classList.add('active'); document.getElementById('tab-login').classList.remove('active'); document.getElementById('auth-btn').textContent='Criar conta'; document.getElementById('auth-msg').textContent=''; };
+  document.getElementById('tab-login').onclick = ()=>{
+    modoAuth='login';
+    document.getElementById('tab-login').classList.add('active');
+    document.getElementById('tab-cadastro').classList.remove('active');
+    document.getElementById('auth-btn').textContent='Entrar';
+    document.getElementById('auth-msg').textContent='';
+  };
+  document.getElementById('tab-cadastro').onclick = ()=>{
+    modoAuth='cadastro';
+    document.getElementById('tab-cadastro').classList.add('active');
+    document.getElementById('tab-login').classList.remove('active');
+    document.getElementById('auth-btn').textContent='Criar conta';
+    document.getElementById('auth-msg').textContent='';
+  };
 
   document.getElementById('auth-btn').onclick = async ()=>{
     const email = document.getElementById('auth-email').value.trim();
@@ -1514,13 +1398,11 @@
         msgEl.textContent = signUpError.message.includes('already')?'E-mail já cadastrado. Use a aba Entrar.':signUpError.message;
         btn.disabled=false; return;
       }
-      // Se o Supabase já retornou sessão (confirm email desativado), entra direto
       if(signUpData?.session?.user){
         msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
         entrarNoApp(signUpData.session.user);
         return;
       }
-      // Caso contrário tenta login imediato com a senha digitada
       msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
     }
 
@@ -1538,11 +1420,11 @@
 
   document.getElementById('btn-sair').onclick = async ()=>{
     await sb.auth.signOut();
-    currentUser=null; state={entradas:[],dividas:[],gastos:[],historico:[],pagamentosMes:[]};
+    currentUser=null;
+    state={entradas:[],dividas:[],gastos:[],historico:[],pagamentosMes:[],consignados:[]};
     mostrarTela('auth-screen');
   };
 
-  // ── NAVEGAÇÃO ENTRE TELAS ─────────────────────────────────────────────────
   function mostrarTela(id){
     ['auth-screen','recuperar-screen','redefinir-screen','app-screen'].forEach(s=>{
       const el = document.getElementById(s);
@@ -1596,14 +1478,13 @@
     }, 1500);
   };
 
-  // Detectar se o usuário voltou pelo link de recuperação (hash #access_token na URL)
   sb.auth.onAuthStateChange(async (event, session)=>{
     if(event==='PASSWORD_RECOVERY'){
       mostrarTela('redefinir-screen');
     }
   });
 
-  // ── CALCULADORA DE JUROS ──────────────────────────────────────────────────
+  // ── CALCULADORA ───────────────────────────────────────────────────────────
   function fmtCalc(n){ return 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
   function resultadoHtml(linhas, botoes){
@@ -1632,7 +1513,6 @@
     }
   }
 
-  // Modo compostos
   document.getElementById('cc-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('cc-valor').value);
     const taxa = Number(document.getElementById('cc-taxa').value)/100;
@@ -1655,7 +1535,6 @@
     });
   };
 
-  // Modo parcelamento
   document.getElementById('cp-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('cp-valor').value);
     const parcelas = Number(document.getElementById('cp-parcelas').value);
@@ -1690,7 +1569,6 @@
     });
   };
 
-  // Modo antecipação
   document.getElementById('ca-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('ca-valor').value);
     const taxa = Number(document.getElementById('ca-taxa').value)/100;
@@ -1716,7 +1594,6 @@
     });
   };
 
-  // Modo comparador
   document.getElementById('cmp-calcular').onclick = ()=>{
     function calcDivida(valor,taxa,meses){
       if(!taxa) return {total:valor,juros:0,parcela:valor/meses};
@@ -1741,7 +1618,7 @@
     const rb = calcDivida(b.valor,b.taxa,b.meses);
     const vencedor = ra.juros<=rb.juros ? a.nome : b.nome;
     const el = document.getElementById('cmp-resultado');
-    el.innerHTML = `<div class="cmp-vencedor">✓ ${vencedor} custa menos no total</div>`
+    el.innerHTML = `<div style="background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:500;margin-bottom:8px;">✓ ${vencedor} custa menos no total</div>`
     + resultadoHtml([
       {label:a.nome+' — parcela',valor:fmtCalc(ra.parcela)},
       {label:a.nome+' — total pago',valor:fmtCalc(ra.total),cls:ra.juros>rb.juros?'cr-destaque':''},
@@ -1759,7 +1636,6 @@
     });
   };
 
-  // Toggle entre modos
   document.querySelectorAll('.calc-modo-btn').forEach(btn=>{
     btn.onclick = ()=>{
       document.querySelectorAll('.calc-modo-btn').forEach(b=>b.classList.remove('active'));
@@ -1778,3 +1654,4 @@
 </script>
 </body>
 </html>
+HTMLEOF
