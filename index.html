@@ -718,6 +718,22 @@
   async function atualizarGasto(g){
     await sb.from('gastos').update({valor:g.valor}).eq('id',g.id);
   }
+  async function salvarGasto(g){
+    const {data,error} = await sb.from('gastos').insert({
+      user_id:currentUser.id, nome:g.nome, valor:g.valor,
+      valor_base:g.valorBase||null, tipo:g.tipo,
+      vencimento:g.vencimento||null, gasto_recorrencia:g.gastoRecorrencia,
+      num_parcelas:g.numParcelas||null, data_inicio:g.dataInicio||null,
+    }).select().single();
+    if(!error) state.gastos.push({
+      ...data,
+      valorBase:data.valor_base,
+      gastoRecorrencia:data.gasto_recorrencia||'mensal',
+      numParcelas:data.num_parcelas,
+      dataInicio:data.data_inicio,
+    });
+    render();
+  }
   async function deletarGasto(id){
     await sb.from('gastos').delete().eq('id',id);
     state.gastos = state.gastos.filter(x=>x.id!==id);
