@@ -224,7 +224,7 @@
 </div>
 
 <!-- TELA DE RECUPERAÇÃO DE SENHA -->
-<div id="recuperar-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
+<div id="recuperar-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
   <div class="auth-box">
     <p class="auth-logo">Sai da Dívida</p>
     <p class="auth-sub">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
@@ -238,7 +238,7 @@
   </div>
 </div>
 
-<!-- TELA DE REDEFINIÇÃO DE SENHA (após clicar no link do e-mail) -->
+<!-- TELA DE REDEFINIÇÃO DE SENHA -->
 <div id="redefinir-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
   <div class="auth-box">
     <p class="auth-logo">Sai da Dívida</p>
@@ -320,7 +320,6 @@
 
       <div id="lista-entradas"><p class="loading">Carregando...</p></div>
 
-      <!-- Consignados -->
       <p class="subhead" style="margin-top:1.5rem;">Descontos consignados</p>
       <form class="entry" id="form-consignado">
         <div class="field-row"><input id="cn-nome" placeholder="Descrição (ex: Consignado Banco X)" required></div>
@@ -459,7 +458,6 @@
     </section>
 
     <section id="tab-calc">
-      <!-- Seletor de modo -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;">
         <button class="calc-modo-btn active" data-modo="compostos">📈 Crescimento da dívida</button>
         <button class="calc-modo-btn" data-modo="parcelamento">💳 Custo do parcelamento</button>
@@ -467,7 +465,6 @@
         <button class="calc-modo-btn" data-modo="comparador">⚖️ Comparador de dívidas</button>
       </div>
 
-      <!-- MODO 1: Juros compostos -->
       <div id="calc-compostos" class="card calc-painel">
         <h2>Crescimento da dívida</h2>
         <p class="sub">Quanto a dívida vai virar se você não pagar.</p>
@@ -480,7 +477,6 @@
         <div id="cc-resultado" style="margin-top:12px;"></div>
       </div>
 
-      <!-- MODO 2: Custo do parcelamento -->
       <div id="calc-parcelamento" class="card calc-painel" style="display:none;">
         <h2>Custo do parcelamento</h2>
         <p class="sub">Quanto você realmente vai pagar no total.</p>
@@ -494,7 +490,6 @@
         <div id="cp-resultado" style="margin-top:12px;"></div>
       </div>
 
-      <!-- MODO 3: Economia antecipando -->
       <div id="calc-antecipacao" class="card calc-painel" style="display:none;">
         <h2>Economia antecipando o pagamento</h2>
         <p class="sub">Quanto você economiza quitando antes do prazo.</p>
@@ -508,7 +503,6 @@
         <div id="ca-resultado" style="margin-top:12px;"></div>
       </div>
 
-      <!-- MODO 4: Comparador -->
       <div id="calc-comparador" class="card calc-painel" style="display:none;">
         <h2>Comparador de dívidas</h2>
         <p class="sub">Qual dívida custa mais caro no total.</p>
@@ -544,8 +538,10 @@
 <script>
 (async function(){
   // ── CONFIGURAÇÃO SUPABASE ──────────────────────────────────────────────────
+  // ATENÇÃO: substitua SUPA_KEY pela chave "anon public" do seu projeto Supabase
+  // (começa com "eyJ..."). Acesse: Project Settings → API → anon public
   const SUPA_URL = 'https://zfjdqmdcvntokifvyrkg.supabase.co';
-  const SUPA_KEY = 'sb_publishable_JCz3S__JZBhJTUIuNtJemg_9r2KE90v';
+  const SUPA_KEY = 'COLE_SUA_CHAVE_ANON_PUBLICA_AQUI'; // ← substitua aqui
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
   // ── ESTADO LOCAL ──────────────────────────────────────────────────────────
@@ -587,7 +583,6 @@
     const inicio = new Date(y,m-1,d);
     const fim = new Date(y,m-1+n-1,d);
     const hoje = new Date();
-    // parcela atual = quantos meses passaram desde o início + 1
     const mesesPassados = (hoje.getFullYear()-inicio.getFullYear())*12 + (hoje.getMonth()-inicio.getMonth());
     const parcelaAtual = Math.min(Math.max(mesesPassados+1,1), n);
     const parcelasRestantes = n - parcelaAtual + 1;
@@ -605,7 +600,6 @@
       sb.from('pagamentos_mes').select('*').eq('user_id',uid).order('created_at'),
       sb.from('consignados').select('*').eq('user_id',uid).order('created_at'),
     ]);
-    // Normaliza snake_case do Supabase → camelCase local
     state.entradas = (e.data||[]).map(x=>({...x, recorrencia:x.recorrencia||'mensal'}));
     state.dividas = (d.data||[]).map(x=>({
       ...x,
@@ -700,6 +694,9 @@
   }
   function totalConsignados(){ return state.consignados.reduce((a,c)=>a+Number(c.valor),0); }
   function totalEntradasLiquido(){ return totalEntradas() - totalConsignados(); }
+
+  // ── CORREÇÃO: declaração da função salvarGasto que estava faltando ─────────
+  async function salvarGasto(g){
     const {data,error} = await sb.from('gastos').insert({
       user_id:currentUser.id, nome:g.nome, valor:g.valor,
       valor_base:g.valorBase||null, tipo:g.tipo,
@@ -715,6 +712,7 @@
     });
     render();
   }
+
   async function atualizarGasto(g){
     await sb.from('gastos').update({valor:g.valor}).eq('id',g.id);
   }
@@ -765,16 +763,12 @@
     sobraEl.textContent = fmt(sobra);
     document.getElementById('s-sobra-card').className = 'stat '+(sobra>=0?'ok':'danger');
 
-    // ── Nova ordem de ataque baseada na sobra disponível ──
-    // Regra: negativadas primeiro SE a sobra cobrir, depois avalanche (maior juros)
-    // Se sobra não cobre a negativada, pula para próxima que cabe
     function ordenarAtaque(lista, sobraDisp){
       const porJuros = [...lista].sort((a,b)=> juroPeso(b.juros)-juroPeso(a.juros));
       const resultado = [];
       const restantes = [...porJuros];
       let saldoRestante = sobraDisp;
 
-      // 1ª passagem: negativadas que cabem na sobra
       const negCabem = restantes.filter(d=>d.status==='negativado'&&Number(d.valor)<=saldoRestante);
       negCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
@@ -782,7 +776,6 @@
         restantes.splice(restantes.indexOf(d),1);
       });
 
-      // 2ª passagem: demais que cabem, por maior juros
       const demaisCabem = restantes.filter(d=>Number(d.valor)<=saldoRestante);
       demaisCabem.forEach(d=>{
         resultado.push({...d, _cabe:true});
@@ -790,16 +783,13 @@
         restantes.splice(restantes.indexOf(d),1);
       });
 
-      // 3ª passagem: negativadas que não couberam
       const negNaoCabem = restantes.filter(d=>d.status==='negativado');
       negNaoCabem.forEach(d=>{
         resultado.push({...d, _cabe:false});
         restantes.splice(restantes.indexOf(d),1);
       });
 
-      // 4ª passagem: resto por maior juros
       restantes.forEach(d=> resultado.push({...d, _cabe:false}));
-
       return resultado;
     }
 
@@ -819,7 +809,6 @@
           </span>
         </div>`).join('');
 
-    // Dívidas
     const listaNeg = document.getElementById('lista-negativadas');
     const listaD = document.getElementById('lista-dividas');
 
@@ -866,7 +855,6 @@
           <button class="del" data-id="${d.id}" data-kind="divida">✕</button>
         </div>`).join('');
 
-    // Gastos
     function itemGastoHtml(g){
       const pc = calcParcelas(g);
       if(pc){
@@ -897,7 +885,6 @@
     }
 
     function fimParcela(g){
-      // Calcula a data de término corretamente
       const [y,m,d] = g.dataInicio.split('-').map(Number);
       const n = Number(g.numParcelas);
       const fim = new Date(y, m-1+n-1, d);
@@ -918,7 +905,6 @@
     document.getElementById('lista-gastos').innerHTML = semData.length===0
       ? '<p class="empty">Nenhum gasto sem data.</p>' : semData.map(itemGastoHtml).join('');
 
-    // Handlers dinâmicos
     document.querySelectorAll('.del').forEach(btn=>{
       btn.onclick = ()=>{
         if(btn.dataset.kind==='divida') deletarDivida(btn.dataset.id);
@@ -1003,7 +989,6 @@
     renderGraficos(rendaTotal, totalGastos, sobra, ativas);
   }
 
-  // Instâncias dos gráficos (para destruir antes de recriar)
   let _charts = {};
   function criarChart(id, config){
     if(_charts[id]) _charts[id].destroy();
@@ -1016,7 +1001,6 @@
     const moss = '#3B5A45', rust = '#A8542F', gold = '#C99A3B', muted = '#6F6A5C';
     const hoje = new Date();
 
-    // ── Gráfico 1: Barras entradas vs gastos últimos 6 meses ──
     const meses = [];
     const labMeses = [];
     for(let i=5;i>=0;i--){
@@ -1025,17 +1009,8 @@
       labMeses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
     }
     const mesAtual = hoje.toISOString().slice(0,7);
-    // Para meses passados usamos histórico; para o mês atual usamos state direto
-    const entMes = meses.map(m => m===mesAtual
-      ? rendaTotal
-      : state.historico.filter(h=>h.tipo==='entrada'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
-    );
-    const gastMes = meses.map(m => m===mesAtual
-      ? totalGastos
-      : state.historico.filter(h=>h.tipo==='gasto'&&h.created_at?.slice(0,7)===m)
-          .reduce((a,h)=>{ const v=Number((h.descricao.match(/R\$\s*([\d.,]+)/)||[])[1]?.replace('.','').replace(',','.')||0); return a+v; },0)
-    );
+    const entMes = meses.map(m => m===mesAtual ? rendaTotal : 0);
+    const gastMes = meses.map(m => m===mesAtual ? totalGastos : 0);
     const sobraMes = meses.map((m,i)=>Math.max(0, entMes[i]-gastMes[i]));
 
     criarChart('chart-barras',{
@@ -1058,13 +1033,11 @@
       }
     });
 
-    // ── Gráfico 2: Linha — total de dívidas ao longo do tempo ──
     const totalInicial = state.dividas.reduce((a,d)=>a+Number(d.valor),0);
     const totalPago = state.pagamentosMes.reduce((a,p)=>a+Number(p.valor),0);
-    // Reconstrói saldo por mês usando pagamentos
     const pagPorMes = {};
     state.pagamentosMes.forEach(p=>{ pagPorMes[p.mesRef]=(pagPorMes[p.mesRef]||0)+Number(p.valor); });
-    let saldo = totalInicial + totalPago; // saldo lá atrás
+    let saldo = totalInicial + totalPago;
     const dadosDividas = meses.map(m=>{ saldo-=(pagPorMes[m]||0); return Math.max(0,saldo); });
 
     criarChart('chart-dividas',{
@@ -1087,7 +1060,6 @@
       }
     });
 
-    // ── Gráfico 3: Pizza — divisão dos gastos por tipo ──
     const tiposMap = {'fixo-imutavel':'Fixo imutável','fixo-consumo':'Consumo','variavel':'Variável','parcelado':'Parcelado'};
     const porTipo = {};
     state.gastos.forEach(g=>{ const t=tiposMap[g.tipo]||g.tipo; porTipo[t]=(porTipo[t]||0)+Number(g.valor); });
@@ -1121,7 +1093,6 @@
           <button class="del-entrada" data-id="${en.id}">✕</button>
         </div>`).join('');
 
-    // Handler de duplo toque para entradas — não usa .del genérico
     document.querySelectorAll('.del-entrada').forEach(btn=>{
       btn.onclick = ()=>{
         if(btn.dataset.confirming==='1'){
@@ -1154,14 +1125,12 @@
       ? '<p class="empty">Informe o dia do mês de cada entrada para ver o calendário.</p>'
       : fixas.map(en=>`<div class="cat-row"><span class="cat-name">Dia ${en.dia} · ${en.nome}</span><span class="cat-val">${fmt(en.valor)}</span></div>`).join('');
 
-    // Atualiza select de entradas no form de consignado
     const sel = document.getElementById('cn-entrada-id');
     const selVal = sel.value;
     sel.innerHTML = '<option value="">Selecione a entrada que sofre o desconto</option>'
       + state.entradas.map(en=>`<option value="${en.id}">${en.nome} (${fmt(en.valor)})</option>`).join('');
     if(selVal) sel.value = selVal;
 
-    // Lista de consignados
     const listaCn = document.getElementById('lista-consignados');
     if(state.consignados.length===0){
       listaCn.innerHTML = '<p class="empty">Nenhum desconto consignado cadastrado.</p>';
@@ -1231,6 +1200,7 @@
   function renderSimulacao(sobraMensal, ativas){
     const el = document.getElementById('sim-content');
     const negativadas = ativas.filter(d=>d.status==='negativado');
+    const parcelados = state.gastos.filter(g=>g.tipo==='parcelado'&&g.numParcelas&&g.dataInicio);
     const temCompromissos = state.gastos.some(g=>g.vencimento)||ativas.some(d=>d.parcelado)||negativadas.length>0;
     if(!temCompromissos){ el.innerHTML='<p class="empty">Cadastre gastos com vencimento, parcele dívidas ou marque como negativadas.</p>'; return; }
 
@@ -1245,12 +1215,10 @@
       compromissos.push({destaque:false, dataOrdenacao:dt, label:`${d.nome} — parcela ${d.parcelaAtual} de ${d.totalParcelas}`,
         valor:d.valorParcela, dataTexto:dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})});
     });
-    // Parcelados na linha do tempo
     parcelados.forEach(g=>{
       const pc = calcParcelas(g);
       if(!pc) return;
       const [y,m,d] = g.dataInicio.split('-').map(Number);
-      // Próximas 3 parcelas futuras
       for(let i=pc.parcelaAtual-1;i<pc.n&&i<pc.parcelaAtual+2;i++){
         const dt = new Date(y,m-1+i,d);
         if(dt>=hoje){
@@ -1262,7 +1230,6 @@
           });
         }
       }
-      // Data de término
       const fim = new Date(y,m-1+pc.n-1,d);
       if(fim>=hoje){
         compromissos.push({
@@ -1318,7 +1285,6 @@
     const sugestaoEl = document.getElementById('plano-sugestao');
     if(ativas.length===0){ sugestaoEl.innerHTML='<p class="empty">Cadastre dívidas para ver a sugestão.</p>'; return; }
     if(sobraRestante<=0){ sugestaoEl.innerHTML='<p class="empty">Sem sobra disponível este mês. Aguarde a próxima entrada.</p>'; return; }
-    // Nova lógica: negativadas que cabem → demais por maior juros → parcial se nada cabe
     const porJuros = [...ativas].sort((a,b)=>juroPeso(b.juros)-juroPeso(a.juros));
     let saldo = sobraRestante;
     const usadas = new Set();
@@ -1498,13 +1464,11 @@
         msgEl.textContent = signUpError.message.includes('already')?'E-mail já cadastrado. Use a aba Entrar.':signUpError.message;
         btn.disabled=false; return;
       }
-      // Se o Supabase já retornou sessão (confirm email desativado), entra direto
       if(signUpData?.session?.user){
         msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
         entrarNoApp(signUpData.session.user);
         return;
       }
-      // Caso contrário tenta login imediato com a senha digitada
       msgEl.className='auth-msg ok'; msgEl.textContent='Conta criada! Entrando...';
     }
 
@@ -1522,7 +1486,7 @@
 
   document.getElementById('btn-sair').onclick = async ()=>{
     await sb.auth.signOut();
-    currentUser=null; state={entradas:[],dividas:[],gastos:[],historico:[],pagamentosMes:[]};
+    currentUser=null; state={entradas:[],dividas:[],gastos:[],historico:[],pagamentosMes:[],consignados:[]};
     mostrarTela('auth-screen');
   };
 
@@ -1580,7 +1544,6 @@
     }, 1500);
   };
 
-  // Detectar se o usuário voltou pelo link de recuperação (hash #access_token na URL)
   sb.auth.onAuthStateChange(async (event, session)=>{
     if(event==='PASSWORD_RECOVERY'){
       mostrarTela('redefinir-screen');
@@ -1616,7 +1579,6 @@
     }
   }
 
-  // Modo compostos
   document.getElementById('cc-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('cc-valor').value);
     const taxa = Number(document.getElementById('cc-taxa').value)/100;
@@ -1639,7 +1601,6 @@
     });
   };
 
-  // Modo parcelamento
   document.getElementById('cp-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('cp-valor').value);
     const parcelas = Number(document.getElementById('cp-parcelas').value);
@@ -1674,7 +1635,6 @@
     });
   };
 
-  // Modo antecipação
   document.getElementById('ca-calcular').onclick = ()=>{
     const valor = Number(document.getElementById('ca-valor').value);
     const taxa = Number(document.getElementById('ca-taxa').value)/100;
@@ -1684,7 +1644,6 @@
     const calcTotal = (v,t,n)=>{ if(t===0) return v; return v*(t*Math.pow(1+t,n))/(Math.pow(1+t,n)-1)*n; };
     const totalOriginal = calcTotal(valor,taxa,prazo);
     const saldoNaAntecipacao = valor*Math.pow(1+taxa,antecipa) - (calcTotal(valor,taxa,prazo)/prazo)*((Math.pow(1+taxa,antecipa)-1)/taxa);
-    const totalAntecipado = calcTotal(valor,taxa,antecipa)*antecipa/antecipa*antecipa + saldoNaAntecipacao;
     const economia = totalOriginal - (calcTotal(valor,taxa,antecipa) + saldoNaAntecipacao);
     const el = document.getElementById('ca-resultado');
     el.innerHTML = resultadoHtml([
@@ -1700,7 +1659,6 @@
     });
   };
 
-  // Modo comparador
   document.getElementById('cmp-calcular').onclick = ()=>{
     function calcDivida(valor,taxa,meses){
       if(!taxa) return {total:valor,juros:0,parcela:valor/meses};
@@ -1725,7 +1683,7 @@
     const rb = calcDivida(b.valor,b.taxa,b.meses);
     const vencedor = ra.juros<=rb.juros ? a.nome : b.nome;
     const el = document.getElementById('cmp-resultado');
-    el.innerHTML = `<div class="cmp-vencedor">✓ ${vencedor} custa menos no total</div>`
+    el.innerHTML = `<div style="background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:500;margin-bottom:8px;">✓ ${vencedor} custa menos no total</div>`
     + resultadoHtml([
       {label:a.nome+' — parcela',valor:fmtCalc(ra.parcela)},
       {label:a.nome+' — total pago',valor:fmtCalc(ra.total),cls:ra.juros>rb.juros?'cr-destaque':''},
@@ -1743,7 +1701,6 @@
     });
   };
 
-  // Toggle entre modos
   document.querySelectorAll('.calc-modo-btn').forEach(btn=>{
     btn.onclick = ()=>{
       document.querySelectorAll('.calc-modo-btn').forEach(b=>b.classList.remove('active'));
