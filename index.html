@@ -221,9 +221,22 @@
     </div>
     <button class="auth-btn" id="auth-btn">Entrar</button>
     <button class="auth-link" id="link-esqueci">Esqueci minha senha</button>
-    <p class="auth-msg" id="auth-msg"></p>
+    <p class="auth-msg" id="auth-msg">Carregando...</p>
   </div>
 </div>
+<script>
+  // Feedback imediato — substitui quando o app carrega
+  document.getElementById('auth-btn').onclick = function(){
+    var msg = document.getElementById('auth-msg');
+    msg.className = 'auth-msg';
+    msg.textContent = 'Carregando sistema... aguarde alguns segundos e tente novamente.';
+  };
+  // Limpa o "Carregando..." após 2s para não confundir
+  setTimeout(function(){
+    var msg = document.getElementById('auth-msg');
+    if(msg.textContent === 'Carregando...') msg.textContent = '';
+  }, 2000);
+</script>
 
 <!-- TELA DE RECUPERAÇÃO DE SENHA -->
 <div id="recuperar-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--moss-deep);padding:1.5rem;">
@@ -542,9 +555,16 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'"></script>
 <script>
 (async function(){
+  // Verifica se o Supabase carregou corretamente
+  if(typeof supabase === 'undefined'){
+    document.getElementById('auth-msg').className='auth-msg err';
+    document.getElementById('auth-msg').textContent='Erro de conexão. Recarregue a página.';
+    document.getElementById('auth-btn').disabled=false;
+    return;
+  }
   // ── CONFIGURAÇÃO SUPABASE ──────────────────────────────────────────────────
   const SUPA_URL = 'https://zfjdqmdcvntokifvyrkg.supabase.co';
   const SUPA_KEY = 'sb_publishable_JCz3S__JZBhJTUIuNtJemg_9r2KE90v';
