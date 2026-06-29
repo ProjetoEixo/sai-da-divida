@@ -302,7 +302,7 @@
       <form class="entry" id="form-entrada">
         <div class="field-row"><input id="e-nome" placeholder="Descrição (ex: Salário, Adiantamento)" required></div>
         <div class="field-row">
-          <input id="e-valor" type="number" placeholder="Valor (R$)" required>
+          <input id="e-valor" type="text" inputmode="decimal" placeholder="Valor (R$)" required>
           <select id="e-categoria">
             <option value="salario">Salário fixo</option>
             <option value="freelance">Freelance/autônomo</option>
@@ -327,7 +327,7 @@
       <form class="entry" id="form-consignado">
         <div class="field-row"><input id="cn-nome" placeholder="Descrição (ex: Consignado Banco X)" required></div>
         <div class="field-row">
-          <input id="cn-valor" type="number" placeholder="Valor descontado/mês (R$)" required>
+          <input id="cn-valor" type="text" inputmode="decimal" placeholder="Valor descontado/mês (R$)" required>
           <input id="cn-parcelas" type="number" min="1" max="600" placeholder="Nº de parcelas restantes">
         </div>
         <div class="field-row">
@@ -355,8 +355,8 @@
       <form class="entry" id="form-divida">
         <div class="field-row"><input id="d-nome" placeholder="Nome (ex: Cartão Nubank)" required></div>
         <div class="field-row">
-          <input id="d-valor" type="number" placeholder="Valor total (R$)" required>
-          <input id="d-minimo" type="number" placeholder="Mínimo mensal (R$)" required>
+          <input id="d-valor" type="text" inputmode="decimal" placeholder="Valor total (R$)" required>
+          <input id="d-minimo" type="text" inputmode="decimal" placeholder="Mínimo mensal (R$)" required>
         </div>
         <div class="field-row">
           <select id="d-status">
@@ -386,7 +386,7 @@
       <form class="entry" id="form-gasto">
         <div class="field-row"><input id="g-nome" placeholder="Gasto (ex: Aluguel, Geladeira 12x)" required></div>
         <div class="field-row">
-          <input id="g-valor" type="number" placeholder="Valor total (R$)" required>
+          <input id="g-valor" type="text" inputmode="decimal" placeholder="Valor total (R$)" required>
           <select id="g-tipo">
             <option value="fixo-imutavel">Fixo imutável (aluguel, mensalidade)</option>
             <option value="fixo-consumo">Fixo de consumo (luz, água, gás)</option>
@@ -471,9 +471,9 @@
       <div id="calc-compostos" class="card calc-painel">
         <h2>Crescimento da dívida</h2>
         <p class="sub">Quanto a dívida vai virar se você não pagar.</p>
-        <div class="field-row"><input id="cc-valor" type="number" placeholder="Valor atual da dívida (R$)"></div>
+        <div class="field-row"><input id="cc-valor" type="text" inputmode="decimal" placeholder="Valor atual da dívida (R$)"></div>
         <div class="field-row">
-          <input id="cc-taxa" type="number" placeholder="Taxa de juros (% ao mês)" step="0.1">
+          <input id="cc-taxa" type="text" inputmode="decimal" placeholder="Taxa de juros (% ao mês)">
           <input id="cc-meses" type="number" placeholder="Em quantos meses?">
         </div>
         <button class="primary" id="cc-calcular">Calcular</button>
@@ -483,12 +483,12 @@
       <div id="calc-parcelamento" class="card calc-painel" style="display:none;">
         <h2>Custo do parcelamento</h2>
         <p class="sub">Quanto você realmente vai pagar no total.</p>
-        <div class="field-row"><input id="cp-valor" type="number" placeholder="Valor à vista (R$)"></div>
+        <div class="field-row"><input id="cp-valor" type="text" inputmode="decimal" placeholder="Valor à vista (R$)"></div>
         <div class="field-row">
           <input id="cp-parcelas" type="number" placeholder="Nº de parcelas">
-          <input id="cp-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="cp-taxa" type="text" inputmode="decimal" placeholder="Taxa ao mês (%)">
         </div>
-        <div class="field-row"><input id="cp-parcela-val" type="number" placeholder="Ou informe o valor da parcela (R$)" step="0.01"></div>
+        <div class="field-row"><input id="cp-parcela-val" type="text" inputmode="decimal" placeholder="Ou informe o valor da parcela (R$)"></div>
         <button class="primary" id="cp-calcular">Calcular</button>
         <div id="cp-resultado" style="margin-top:12px;"></div>
       </div>
@@ -496,9 +496,9 @@
       <div id="calc-antecipacao" class="card calc-painel" style="display:none;">
         <h2>Economia antecipando o pagamento</h2>
         <p class="sub">Quanto você economiza quitando antes do prazo.</p>
-        <div class="field-row"><input id="ca-valor" type="number" placeholder="Valor total da dívida (R$)"></div>
+        <div class="field-row"><input id="ca-valor" type="text" inputmode="decimal" placeholder="Valor total da dívida (R$)"></div>
         <div class="field-row">
-          <input id="ca-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="ca-taxa" type="text" inputmode="decimal" placeholder="Taxa ao mês (%)">
           <input id="ca-prazo" type="number" placeholder="Prazo total (meses)">
         </div>
         <div class="field-row"><input id="ca-antecipa" type="number" placeholder="Quero quitar em quantos meses?"></div>
@@ -512,19 +512,19 @@
         <p class="subhead" style="margin-top:4px;">Dívida A</p>
         <div class="field-row">
           <input id="cmp-a-nome" placeholder="Nome (ex: Cartão)">
-          <input id="cmp-a-valor" type="number" placeholder="Valor (R$)">
+          <input id="cmp-a-valor" type="text" inputmode="decimal" placeholder="Valor (R$)">
         </div>
         <div class="field-row">
-          <input id="cmp-a-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="cmp-a-taxa" type="text" inputmode="decimal" placeholder="Taxa ao mês (%)">
           <input id="cmp-a-meses" type="number" placeholder="Prazo (meses)">
         </div>
         <p class="subhead">Dívida B</p>
         <div class="field-row">
           <input id="cmp-b-nome" placeholder="Nome (ex: Empréstimo)">
-          <input id="cmp-b-valor" type="number" placeholder="Valor (R$)">
+          <input id="cmp-b-valor" type="text" inputmode="decimal" placeholder="Valor (R$)">
         </div>
         <div class="field-row">
-          <input id="cmp-b-taxa" type="number" placeholder="Taxa ao mês (%)" step="0.1">
+          <input id="cmp-b-taxa" type="text" inputmode="decimal" placeholder="Taxa ao mês (%)">
           <input id="cmp-b-meses" type="number" placeholder="Prazo (meses)">
         </div>
         <button class="primary" id="cmp-calcular">Comparar</button>
@@ -570,6 +570,24 @@
    */
   function fmtCalc(n) {
     return fmt(n);
+  }
+
+  /**
+   * Converte texto digitado pelo usuário (aceitando vírgula OU ponto como
+   * separador decimal) em número. Necessário porque os campos de valor
+   * usam type="text" inputmode="decimal" — inputs type="number" do HTML
+   * nunca aceitam vírgula, mesmo em páginas pt-BR.
+   * Exemplos: "12,50" → 12.5 | "12.50" → 12.5 | "1.234,56" → 1234.56
+   */
+  function parseValor(v) {
+    if (typeof v !== 'string') return Number(v) || 0;
+    let limpo = v.trim();
+    if (!limpo) return 0;
+    // Se tiver vírgula, ela é o separador decimal: remove pontos de milhar e troca , por .
+    if (limpo.includes(',')) {
+      limpo = limpo.replace(/\./g, '').replace(',', '.');
+    }
+    return Number(limpo) || 0;
   }
 
   const juroPeso = j => j==='alto'?3:j==='medio'?2:1;
@@ -938,7 +956,7 @@
         const g = state.gastos.find(x=>x.id===btn.dataset.id);
         if(!g) return;
         const novoRaw = prompt(`Consumo real de "${g.nome}" este mês:\n(estimativa: ${fmt(g.valorBase||g.valor)})`, g.valor);
-        const novo = Number(novoRaw);
+        const novo = parseValor(novoRaw);
         if(!novoRaw||!novo||novo<=0) return;
         const anterior = g.valor;
         g.valor = novo;
@@ -1369,7 +1387,7 @@
   toggleCamposGasto();
 
   function atualizarPreviewParcela(){
-    const valor = Number(document.getElementById('g-valor').value);
+    const valor = parseValor(document.getElementById('g-valor').value);
     const n = Number(document.getElementById('g-num-parcelas').value);
     const dataInicio = document.getElementById('g-data-inicio').value;
     const preview = document.getElementById('g-parcela-preview');
@@ -1400,7 +1418,7 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('e-nome').value.trim();
-    const valor = Number(document.getElementById('e-valor').value);
+    const valor = parseValor(document.getElementById('e-valor').value);
     const categoria = document.getElementById('e-categoria').value;
     const diaRaw = document.getElementById('e-dia').value;
     const dia = diaRaw ? Math.min(31,Math.max(1,Number(diaRaw))) : null;
@@ -1417,7 +1435,7 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('cn-nome').value.trim();
-    const valor = Number(document.getElementById('cn-valor').value);
+    const valor = parseValor(document.getElementById('cn-valor').value);
     const entradaId = document.getElementById('cn-entrada-id').value||null;
     const numParcelas = Number(document.getElementById('cn-parcelas').value)||null;
     if(!nome||!valor){ btn.disabled=false; return; }
@@ -1432,8 +1450,8 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('d-nome').value.trim();
-    const valor = Number(document.getElementById('d-valor').value);
-    const minimo = Number(document.getElementById('d-minimo').value);
+    const valor = parseValor(document.getElementById('d-valor').value);
+    const minimo = parseValor(document.getElementById('d-minimo').value);
     if(!nome||!valor||!minimo){ btn.disabled=false; return; }
     const status = document.getElementById('d-status').value;
     const dataNegativado = status==='negativado' ? document.getElementById('d-data-negativado').value||null : null;
@@ -1448,7 +1466,7 @@
     const btn = e.target.querySelector('button');
     btn.disabled=true;
     const nome = document.getElementById('g-nome').value.trim();
-    const valor = Number(document.getElementById('g-valor').value);
+    const valor = parseValor(document.getElementById('g-valor').value);
     if(!nome||!valor){ btn.disabled=false; return; }
     const tipo = document.getElementById('g-tipo').value;
     const vencimento = tipo!=='parcelado' ? (document.getElementById('g-vencimento').value||null) : null;
@@ -1599,8 +1617,8 @@
   }
 
   document.getElementById('cc-calcular').onclick = ()=>{
-    const valor = Number(document.getElementById('cc-valor').value);
-    const taxa = Number(document.getElementById('cc-taxa').value)/100;
+    const valor = parseValor(document.getElementById('cc-valor').value);
+    const taxa = parseValor(document.getElementById('cc-taxa').value)/100;
     const meses = Number(document.getElementById('cc-meses').value);
     if(!valor||!taxa||!meses) return;
     const final = valor * Math.pow(1+taxa, meses);
@@ -1621,10 +1639,10 @@
   };
 
   document.getElementById('cp-calcular').onclick = ()=>{
-    const valor = Number(document.getElementById('cp-valor').value);
+    const valor = parseValor(document.getElementById('cp-valor').value);
     const parcelas = Number(document.getElementById('cp-parcelas').value);
-    const taxa = Number(document.getElementById('cp-taxa').value)/100;
-    const parcelaInformada = Number(document.getElementById('cp-parcela-val').value);
+    const taxa = parseValor(document.getElementById('cp-taxa').value)/100;
+    const parcelaInformada = parseValor(document.getElementById('cp-parcela-val').value);
     if(!parcelas) return;
     let parcelaCalc, totalPago, jurosTotal;
     if(parcelaInformada){
@@ -1655,8 +1673,8 @@
   };
 
   document.getElementById('ca-calcular').onclick = ()=>{
-    const valor = Number(document.getElementById('ca-valor').value);
-    const taxa = Number(document.getElementById('ca-taxa').value)/100;
+    const valor = parseValor(document.getElementById('ca-valor').value);
+    const taxa = parseValor(document.getElementById('ca-taxa').value)/100;
     const prazo = Number(document.getElementById('ca-prazo').value);
     const antecipa = Number(document.getElementById('ca-antecipa').value);
     if(!valor||!taxa||!prazo||!antecipa||antecipa>=prazo) return;
@@ -1687,14 +1705,14 @@
     }
     const a = {
       nome:document.getElementById('cmp-a-nome').value||'Dívida A',
-      valor:Number(document.getElementById('cmp-a-valor').value),
-      taxa:Number(document.getElementById('cmp-a-taxa').value),
+      valor:parseValor(document.getElementById('cmp-a-valor').value),
+      taxa:parseValor(document.getElementById('cmp-a-taxa').value),
       meses:Number(document.getElementById('cmp-a-meses').value),
     };
     const b = {
       nome:document.getElementById('cmp-b-nome').value||'Dívida B',
-      valor:Number(document.getElementById('cmp-b-valor').value),
-      taxa:Number(document.getElementById('cmp-b-taxa').value),
+      valor:parseValor(document.getElementById('cmp-b-valor').value),
+      taxa:parseValor(document.getElementById('cmp-b-taxa').value),
       meses:Number(document.getElementById('cmp-b-meses').value),
     };
     if(!a.valor||!a.meses||!b.valor||!b.meses) return;
