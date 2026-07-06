@@ -562,7 +562,7 @@
     const partes = valor.toFixed(2).split('.');
     const inteiro = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const centavos = partes[1];
-    return 'R\u00A0' + inteiro + ',' + centavos;
+    return 'R$\u00A0' + inteiro + ',' + centavos;
   }
 
   /**
@@ -583,9 +583,19 @@
     if (typeof v !== 'string') return Number(v) || 0;
     let limpo = v.trim();
     if (!limpo) return 0;
-    // Se tiver vírgula, ela é o separador decimal: remove pontos de milhar e troca , por .
     if (limpo.includes(',')) {
+      // Tem vírgula: ela é o separador decimal. Remove pontos de milhar e troca , por .
       limpo = limpo.replace(/\./g, '').replace(',', '.');
+    } else if (limpo.includes('.')) {
+      // Só tem ponto(s), sem vírgula: pode ser separador de milhar ("1.500")
+      // ou decimal ("12.50"/"12.5"). Regra: se houver mais de um ponto, só
+      // pode ser milhar ("1.234.567"). Se houver um único ponto, tratamos
+      // como milhar quando o grupo final tiver exatamente 3 dígitos
+      // (padrão pt-BR de milhar), e como decimal quando tiver 1 ou 2 dígitos.
+      const partes = limpo.split('.');
+      const ultimo = partes[partes.length - 1];
+      const ehMilhar = partes.length > 2 || ultimo.length === 3;
+      limpo = ehMilhar ? partes.join('') : partes.join('.');
     }
     return Number(limpo) || 0;
   }
@@ -786,7 +796,12 @@
     const totalConsig = totalConsignados();
     const totalDividas = ativas.reduce((a,d)=>a+Number(d.valor),0);
     const totalMinimos = ativas.reduce((a,d)=>a+Number(d.minimo),0);
-    const totalGastos = state.gastos.reduce((a,g)=>a+Number(g.valor),0);
+    const totalGastos = state.gastos.reduce((a,g)=>{
+      const pc = calcParcelas(g);
+      // Em gastos parcelados, g.valor é o valor TOTAL da compra.
+      // O que impacta o orçamento do mês é apenas o valor da parcela atual.
+      return a + (pc ? pc.valorParcela : Number(g.valor));
+    },0);
     const sobra = rendaTotal - totalGastos - totalMinimos;
 
     document.getElementById('s-renda').textContent = fmt(rendaTotal);
@@ -986,6 +1001,10 @@
           await salvarPagamento({dividaId:d.id,nome:d.nome,valor:vp,mesRef:isoHoje.slice(0,7)});
           await salvarHistorico('divida-paga',`${d.nome}: parcela ${d.parcelaAtual}/${d.totalParcelas} de ${fmt(vp)} paga em ${fmtData(isoHoje)}`);
           d.parcelaAtual += 1;
+          // Abate o valor da parcela paga do saldo devedor total da dívida,
+          // para que "Total em dívidas" e a "Ordem de ataque" reflitam o
+          // saldo real que ainda falta pagar, não o valor original cheio.
+          d.valor = Math.max(0, Number(d.valor) - vp);
           await atualizarDivida(d);
           render(); return;
         }
@@ -1101,7 +1120,12 @@
 
     const tiposMap = {'fixo-imutavel':'Fixo imutável','fixo-consumo':'Consumo','variavel':'Variável','parcelado':'Parcelado'};
     const porTipo = {};
-    state.gastos.forEach(g=>{ const t=tiposMap[g.tipo]||g.tipo; porTipo[t]=(porTipo[t]||0)+Number(g.valor); });
+    state.gastos.forEach(g=>{
+      const t=tiposMap[g.tipo]||g.tipo;
+      const pc = calcParcelas(g);
+      const valorMensal = pc ? pc.valorParcela : Number(g.valor);
+      porTipo[t]=(porTipo[t]||0)+valorMensal;
+    });
     const pizzaLabels = Object.keys(porTipo);
     const pizzaData = pizzaLabels.map(k=>porTipo[k]);
     const pizzaCores = [moss+'DD', rust+'DD', gold+'DD', '#5A7A9C'+'DD'];
