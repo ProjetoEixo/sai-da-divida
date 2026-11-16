@@ -1,0 +1,1 @@
+(async()=>{for(let i=0;i<5;i++){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='app-'+i+'.js';s.onload=resolve;s.onerror=reject;document.body.appendChild(s)})}})().catch(()=>{document.getElementById('content').textContent='Não foi possível carregar a prévia. Recarregue a página.'});

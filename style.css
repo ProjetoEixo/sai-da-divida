@@ -1,0 +1,6 @@
+@import url("style-0.css");
+@import url("style-1.css");
+@import url("style-2.css");
+@import url("style-3.css");
+@import url("style-4.css");
+@container(max-width:600px){.bottomnav{position:fixed;left:50%;transform:translateX(-50%);margin-left:0;bottom:0;width:390px;max-width:100%;height:68px;padding-bottom:max(8px,env(safe-area-inset-bottom));}.app{padding-bottom:88px}.main{width:100%}}

@@ -1,0 +1,27 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';
+import {parseHTML} from 'linkedom';import {IDBFactory} from 'fake-indexeddb';
+test('fluxo integrado: cadastro local, transferência, calculadora e persistência',async()=>{
+ const html=await fs.readFile(new URL('../dist/index.html',import.meta.url),'utf8'),{window,document}=parseHTML(html);
+ const memory=()=>{const map=new Map();return{getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,String(v)),removeItem:k=>map.delete(k)}};
+ const globals={window,document,location:new URL('http://localhost:4181/'),history:{replaceState(){}},localStorage:memory(),sessionStorage:memory(),indexedDB:new IDBFactory()};for(const [k,v]of Object.entries(globals))globalThis[k]=v;Object.defineProperty(globalThis,'navigator',{value:{},configurable:true});
+ globalThis.fetch=async()=>({ok:true,json:async()=>({url:'',key:''})});window.scrollTo=()=>{};
+ Object.defineProperty(window.HTMLSelectElement.prototype,'value',{get(){return this.querySelector('option[selected]')?.value??this.querySelector('option')?.value??''},set(v){for(const o of this.querySelectorAll('option')){if(o.value===String(v))o.setAttribute('selected','');else o.removeAttribute('selected')}}});
+ for(const d of document.querySelectorAll('dialog')){d.showModal=function(){this.setAttribute('open','')};d.close=function(){this.removeAttribute('open')}};
+ globalThis.FormData=class extends Map{constructor(form){super();for(const e of form.querySelectorAll('input,select,textarea'))if(e.name&&!e.disabled&&(e.type!=='checkbox'||e.checked))this.set(e.name,e.value)}};
+ const realTimeout=globalThis.setTimeout;globalThis.setTimeout=(fn,ms,...args)=>{const timer=realTimeout(fn,ms,...args);timer.unref?.();return timer};
+ const tick=()=>new Promise(resolve=>setImmediate(resolve)),until=async check=>{for(let i=0;i<100;i++){if(check())return;await tick()}assert.ok(check(),'A atualização esperada da interface não ocorreu')};
+ const click=selector=>{const e=document.querySelector(selector);assert.ok(e,'Controle ausente: '+selector);e.click()};const fill=(form,values)=>{for(const[k,v]of Object.entries(values)){const e=document.querySelector(`${form} [name="${k}"]`);assert.ok(e,'Campo ausente: '+k);e.value=String(v)}};const submit=selector=>document.querySelector(selector).dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
+ await import('../dist/main.mjs?flow-test');
+ click('#deviceButton');await until(()=>!document.querySelector('#appShell').hidden);
+ assert.equal(document.querySelector('#modeLabel').textContent,'ESTE DISPOSITIVO · SEM SINCRONIZAÇÃO');
+ click('[data-action="screen:accounts"]');click('[data-action="account"]');fill('#modalForm',{name:'Conta real de teste',kind:'checking',purpose:'',opening:'1.000,00'});submit('#modalForm');await until(()=>!document.querySelector('#entryDialog').hasAttribute('open'));
+ assert.ok(document.querySelector('#content').textContent.includes('Conta real de teste'));
+ click('[data-action="account"]');fill('#modalForm',{name:'Minha reserva',kind:'reserve',purpose:'',opening:'0,00'});submit('#modalForm');await until(()=>!document.querySelector('#entryDialog').hasAttribute('open'));
+ click('[data-action="transfer"]');fill('#modalForm',{amount:'100,00',description:'Reserva de teste'});submit('#modalForm');await until(()=>!document.querySelector('#entryDialog').hasAttribute('open'));
+ click('[data-action="screen:overview"]');const text=document.querySelector('#content').textContent;assert.ok(text.includes('900,00'));assert.ok(text.includes('100,00'));assert.ok(text.includes('1.000,00'));
+ click('[data-action="screen:calculators"]');fill('#calculatorForm',{principal:'1.000,00',rate:'0',months:'12'});submit('#calculatorForm');assert.ok(document.querySelector('#calcResult').textContent.includes('1.000,00'));assert.ok(document.querySelector('#calcResult').textContent.includes('Memória')||document.querySelector('#calcResult').textContent.includes('memória'));
+ click('[data-action="saveScenario"]');await until(()=>document.querySelector('#content').textContent.includes('Cenários salvos')&&document.querySelectorAll('.setting-row').length===1);
+ const {DeviceStore}=await import('../dist/storage.mjs'),loaded=await new DeviceStore().load();assert.equal(loaded.accounts.length,2);assert.equal(loaded.entries.length,1);assert.equal(loaded.scenarios.length,1);assert.equal(loaded.entries[0].kind,'transfer');
+ click('[data-action="screen:payslips"]');assert.ok(document.querySelector('#content').textContent.includes('foto ou PDF'));assert.equal(loaded.entries.filter(e=>e.kind==='income').length,0);
+ globalThis.setTimeout=realTimeout;
+});
